@@ -5,7 +5,7 @@ Decontamination of (metagenome-assembled) genomes
 
 Install 3rd party programs:  	
 
-* [NCBI BLAST] (ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/), [Prodigal] (https://github.com/hyattpd/Prodigal), [HMMER] (http://hmmer.org/download.html), and [LAST] (http://last.cbrc.jp)
+* [NCBI BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download), [Prodigal](https://github.com/hyattpd/Prodigal), [HMMER](http://hmmer.org/download.html), and [LAST](http://last.cbrc.jp)
 * Make sure these programs are located on your PATH
 
 Install required python libraries:
@@ -32,25 +32,6 @@ Unpack the database: `tar -zxvf mag-purify_db_v1.0.tar.gz`
 To list options, use: `python run_qc.py -h`  
 
 Run MAG-cleaner on a very small test dataset
-`python run_qc.py ... --verbose`
+`python run_qc.py test.fna test -d mag-purify_db_v1.0`
 
 
-
-# MAG cleaner
-
-## Dependencies
-
-1. Python 2
-2. Python modules: pandas, numpy, sklearn, biopython
-3. External programs:
-	
-
-## Database
-
-The iMAGen database can be downloaded from dropbox via [http] (https://www.dropbox.com/sh/xye5c3lpm1oscfp/AAC8Wf6UOMnUQDNLVqCKvKDea?dl=0),
-
-Or using wget:
-`wget `
-
-After downloading, add the directory to your environment:  
-`export IMAGEN_DB=/path/to/iMAGen-db`
