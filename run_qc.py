@@ -1,125 +1,63 @@
 #!/usr/bin/env python
 
 import sys
-import mag_purify
-from mag_purify.utility import *
+import argparse
 
-def fetch_args():
-	import argparse
-	parser = argparse.ArgumentParser(
-		formatter_class=argparse.RawTextHelpFormatter
-	)
-	parser.add_argument('fna_path', type=str,
-		help="""Path to input genome in FASTA format""")
-	parser.add_argument('out_dir', type=str,
-		help="""Output directory to store results and intermediate files""")
-	parser.add_argument('-t', dest='threads', type=int, default=1,
-		help="""Number of CPUs to use (default=1)""")
-	parser.add_argument('-d', dest='db', type=str,
-		help="""Path to reference database""")
-	parser.add_argument('-m', dest='modules', type=str,
-		help="""Comma-separated list of modules to run (default=all)
-Choices; each uses a different pipeling to predict whether a contig is contamination:
-   uscmg - discordant taxonomy based on universal-single-copy marker-genes
-   csmg - discordant taxonomy based on clade-specific marker-genes
-   contdb - hits to database of known contaminants
-   tnf - outlier tetranucleotide frequency
-   gc - outlier gc content
-   depth - outlier read depth
-   """)
-	parser.add_argument('-s', dest='sens', type=str,
-		help="""Sensitivity/specificity (default=very-specific)
-Choices: very-specific, specific, sensitive, very-sensitive""")
-
-	args = vars(parser.parse_args())
-	if args['modules']:
-		args['modules'] = args['modules'].split(',')
-		for module in args['modules']:
-			if module not in ['uscmg', 'csmg', 'contdb', 'tnf', 'gc', 'depth']:
-				sys.exit("\nError: unknown module '-m %s'\n" % module)
+def get_program():
+	if len(sys.argv) == 1 or sys.argv[1] in ['-h', '--help']:
+		print('MAGpurify: Identify and remove incorrectly binned contigs from metagenome-assembled genomes')
+		print('')
+		print('Usage: run_qc.py <command> [options]')
+		print('')
+		print('Commands:')
+		print('    phylo-markers find taxonomic discordant contigs using db of phylogenetic marker genes')
+		print('    clade-markers find taxonomic discordant contigs using db of clade-specific marker genes')
+		print('      conspecific find contigs that fail to align to closely related genomes')
+		print('       tetra-freq find contigs with outlier tetranucleotide frequency')
+		print('       gc-content find contigs with outlier gc content')
+		print('     known-contam find contigs that match a database of known contaminants')
+		print('        clean-bin remove identified contigs from bin')
+		print('')
+		print('Note: use run_qc.py <command> -h to view usage for a specific command')
+		quit()
+	elif sys.argv[1] not in ['phylo-markers', 'clade-markers', 'conspecific',
+	                         'tetra-freq', 'gc-content', 'known-contam', 'clean-bin']:
+		sys.exit("\nError: Unrecognized command: '%s'\n" % sys.argv[1])
+		quit()
 	else:
-		args['modules'] = ['uscmg', 'csmg', 'contdb', 'tnf', 'gc', 'depth']
-
-	return args
-
-class Contig:
-	def __init__(self):
-		pass
+		return sys.argv[1]
 
 if __name__ == "__main__":
 	
-	args = fetch_args()
-
-	check_input(args)
-	check_database(args)
-
-	contigs = {}
-	for rec in parse_fasta(args['fna_path']):
-		contig = Contig()
-		contig.id = rec.id
-		contig.seq = str(rec.seq)
-		contig.length = len(rec.seq)
-		contig.flags = []
-		contigs[rec.id] = contig
+	program = get_program()
 	
-	if args['modules'] and 'uscmg' in args['modules']:
-		from mag_purify import uscmg
-		check_dependencies(['prodigal', 'blastp', 'hmmsearch'])
-		sys.stdout.write("discordant taxonomy based on universal-single-copy marker-genes\n")
-		flagged = mag_purify.uscmg.main(args)
-		for id in flagged:
-			contigs[id].flags.append('uscmg')
-		sys.stdout.write("   %s contigs flagged\n" % len(flagged))
+	if program == 'phylo-markers':
+		from magpurify import uscmg
+		uscmg.main()
 
-	if args['modules'] and 'csmg' in args['modules']:
-		from mag_purify import csmg
-		check_dependencies(['prodigal', 'lastal'])
-		sys.stdout.write("discordant taxonomy based on clade-specific marker-genes\n")
-		flagged = csmg.main(args)
-		for id in flagged:
-			contigs[id].flags.append('csmg')
-		sys.stdout.write("   %s contigs flagged\n" % len(flagged))
+	if program == 'clade-markers':
+		from magpurify import csmg
+		csmg.main()
 
-	if args['modules'] and 'contdb' in args['modules']:
-		from mag_purify import contam
-		check_dependencies(['blastn'])
-		sys.stdout.write("hits to database of contaminants\n")
-		flagged = contam.main(args)
-		for id in flagged:
-			contigs[id].flags.append('contdb')
-		sys.stdout.write("   %s contigs flagged\n" % len(flagged))
+	if program == 'conspecific':
+		from magpurify import conspecific
+		conspecific.main()
 
-	if args['modules'] and 'tnf' in args['modules']:
-		check_dependencies([])
-		sys.stdout.write("outlier tetranucleotide frequency\n")
-		from mag_purify import tetra
-		flagged = tetra.main(args)
-		for id in flagged:
-			contigs[id].flags.append('tnf')
-		sys.stdout.write("   %s contigs flagged\n" % len(flagged))
+	if program == 'tetra-freq':
+		from magpurify import tetra
+		tetra.main()
 
-	if args['modules'] and 'gc' in args['modules']:
-		check_dependencies([])
-		sys.stdout.write("outlier gc content\n")
-		from mag_purify import gc
-		flagged = gc.main(args)
-		for id in flagged:
-			contigs[id].flags.append('gcc')
-		sys.stdout.write("   %s contigs flagged\n" % len(flagged))
+	if program == 'gc-content':
+		from magpurify import gc
+		gc.main()
 
-	with open('%s/cleaned.fa' % args['out_dir'], 'w') as f:
-		for contig in contigs.values():
-			if len(contig.flags) > 0:
-				continue
-			f.write('>'+contig.id+'\n'+contig.seq+'\n')
+	if program == 'known-contam':
+		from magpurify import contam
+		contam.main()
 
-	with open('%s/summary.tsv' % args['out_dir'], 'w') as f:
-		fields = ['contig_id', 'length', 'flags']
-		f.write('\t'.join(fields)+'\n')
-		for contig in contigs.values():
-			values = [contig.id, str(contig.length), ','.join(contig.flags)]
-			f.write('\t'.join(values)+'\n')
-
+	if program == 'clean-bin':
+		from magpurify import clean
+		clean.main()
 
 
 

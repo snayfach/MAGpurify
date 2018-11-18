@@ -43,20 +43,9 @@ By default, the MAGPURIFYDB environmental variable is used""")
 	args = vars(parser.parse_args())
 	return args
 
-def add_defaults(args):
-	args['continue'] = False
-	args['max_target_seqs'] = 1
-	args['cutoff_type'] = 'strict'
-	args['seq_type'] = 'protein'
-	args['hit_type'] = 'top_hit'
-	args['exclude_clades'] = None
-	args['bin_fract'] = 0.7
-	args['contig_fract'] = 1.0
-	args['allow_noclass'] = False
-
 def extract_homologs(tmp_dir):
 	# create outdir
-	seqs_dir = "%s/seqs" % tmp_dir
+	seqs_dir = "%s/markers" % tmp_dir
 	if not os.path.isdir(seqs_dir):
 		os.makedirs(seqs_dir)
 	# fetch best hits from hmmsearch
@@ -85,7 +74,7 @@ def align_homologs(db_dir, tmp_dir, seq_type, threads):
 	aln_dir = "%s/alns" % tmp_dir
 	if not os.path.exists(aln_dir):
 		os.makedirs(aln_dir)
-	seq_files = os.listdir("%s/seqs" % tmp_dir)
+	seq_files = os.listdir("%s/markers" % tmp_dir)
 	for file_index, seq_file in enumerate(seq_files):
 		marker_id, ext = seq_file.split('.')
 		if ext == 'ffn' and seq_type == 'protein':
@@ -94,14 +83,14 @@ def align_homologs(db_dir, tmp_dir, seq_type, threads):
 			continue
 		if ext == 'faa':
 			program = 'blastp' if ext == 'faa' else 'blastn'
-			db_path = '%s/uscmg/%s/%s' % (db_dir, program, marker_id)
-			query_path = '%s/seqs/%s.%s' % (tmp_dir, marker_id, ext)
+			db_path = '%s/phylo-markers/%s/%s' % (db_dir, program, marker_id)
+			query_path = '%s/markers/%s.%s' % (tmp_dir, marker_id, ext)
 			out_path = '%s/alns/%s.%s.m8' % (tmp_dir, marker_id, ext)
 			utility.run_blastp(db_path, query_path, out_path, threads)
 		else:
 			program = 'blastn'
-			db_path = '%s/uscmg/%s/%s' % (db_dir, program, marker_id)
-			query_path = '%s/seqs/%s.%s' % (tmp_dir, marker_id, ext)
+			db_path = '%s/phylo-markers/%s/%s' % (db_dir, program, marker_id)
+			query_path = '%s/markers/%s.%s' % (tmp_dir, marker_id, ext)
 			out_path = '%s/alns/%s.%s.m8' % (tmp_dir, marker_id, ext)
 			utility.run_blastp(db_path, query_path, out_path, threads)
 
@@ -224,7 +213,7 @@ def flag_contigs(db_dir, tmp_dir, args):
 	# step 0. read in reference data files
 	# cutoffs
 	cutoffs = {}
-	cutoffs_path = '%s/uscmg/max_fscores.tsv' % db_dir
+	cutoffs_path = '%s/phylo-markers/max_fscores.tsv' % db_dir
 	reader = csv.DictReader(open(cutoffs_path), delimiter="\t")
 	for r in reader:
 		key = (r['marker_id'], r['seq_type'], r['score_type'], r['taxlevel'])
@@ -232,7 +221,7 @@ def flag_contigs(db_dir, tmp_dir, args):
 		cutoffs[key] = value
 	# taxonomy
 	taxonomy = {}
-	taxonomy_path = '%s/uscmg/genome_taxonomy.tsv' % db_dir
+	taxonomy_path = '%s/phylo-markers/genome_taxonomy.tsv' % db_dir
 	reader = csv.DictReader(open(taxonomy_path), delimiter="\t")
 	for r in reader:
 		taxonomy[r['genome_id']] = r['taxonomy']
@@ -240,9 +229,9 @@ def flag_contigs(db_dir, tmp_dir, args):
 	clusters = {}
 	for type in ['ffn', 'faa']:
 		clusters[type] = {}
-		for file in os.listdir('%s/uscmg/%s' % (db_dir, type)):
+		for file in os.listdir('%s/phylo-markers/%s' % (db_dir, type)):
 			if file.split('.')[-1] == 'uc':
-				with open('%s/uscmg/%s/%s' % (db_dir, type, file)) as f:
+				with open('%s/phylo-markers/%s/%s' % (db_dir, type, file)) as f:
 					for l in f:
 						v = l.rstrip().split()
 						rep_id = v[-1]
@@ -393,13 +382,17 @@ def main():
 	
 	print ("\n## Calling genes with Prodigal")
 	utility.run_prodigal(args['fna'], args['tmp_dir'])
+	print ("   all genes: %s/genes.[ffn|faa]" % args['tmp_dir'])
 
 	print ("\n## Identifying PhyEco phylogenetic marker genes with HMMER")
 	utility.run_hmmsearch(args['db'], args['tmp_dir'], args['tmp_dir'], args['threads'])
 	extract_homologs(args['tmp_dir'])
-
+	print ("   hmm results: %s/phyeco.hmmsearch" % args['tmp_dir'])
+	print ("   marker genes: %s/markers" % args['tmp_dir'])
+	
 	print ("\n## Performing pairwise BLAST alignment of marker genes against database")
 	align_homologs(args['db'], args['tmp_dir'], args['seq_type'], args['threads'])
+	print ("   blast results: %s/alns" % args['tmp_dir'])
 
 	print ("\n## Finding taxonomic outliers")
 	flagged = flag_contigs(args['db'], args['tmp_dir'], args)

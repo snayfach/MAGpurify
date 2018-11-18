@@ -39,7 +39,7 @@ def main():
 	for program in programs:
 		path = '%s/%s/flagged_contigs' % (args['out'], program)
 		if not os.path.exists(path):
-			print("   %s: file does not exist")
+			print("   %s: no output file found" % program)
 		else:
 			contigs = [_.rstrip() for _ in open(path)]
 			bases = round(sum([len(bin[id]) for id in contigs])/1000.0,2)

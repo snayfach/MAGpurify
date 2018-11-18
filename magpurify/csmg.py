@@ -5,12 +5,13 @@ import utility
 import argparse
 
 ranks = ['k', 'p', 'c', 'o', 'f', 'g', 's']
+rank_names = {'k':'kingdom', 'p':'phylum', 'c':'class', 'o':'order', 'f':'family', 'g':'genus', 's':'species'}
 
 def fetch_args():
 	parser = argparse.ArgumentParser(
 		formatter_class=argparse.RawTextHelpFormatter,
 		usage=argparse.SUPPRESS,
-		description="MAGpurify: tetra-freq module: find taxonomic discordant contigs using db of clade-specific marker genes"
+		description="MAGpurify: clade-markers module: find taxonomic discordant contigs using db of clade-specific marker genes"
 	)
 	parser.add_argument('program', help=argparse.SUPPRESS)
 	parser.add_argument('fna', type=str,
@@ -48,7 +49,7 @@ def add_defaults(args):
 
 def read_ref_taxonomy(db_dir):
 	ref_taxonomy = {}
-	inpath = '%s/csmg/taxonomy.tsv' % db_dir
+	inpath = '%s/clade-markers/taxonomy.tsv' % db_dir
 	for line in open(inpath):
 		ref_id, taxonomy = line.rstrip().split()
 		ref_taxonomy[ref_id] = taxonomy
@@ -172,9 +173,11 @@ def main():
 
 	print ("\n## Calling genes with Prodigal")
 	utility.run_prodigal(args['fna'], args['tmp_dir'])
-
+	print ("   all genes: %s/genes.[ffn|faa]" % args['tmp_dir'])
+	
 	print ("\n## Performing pairwise alignment of genes against MetaPhlan2 db of clade-specific genes")
 	utility.run_lastal(args['db'], args['tmp_dir'], args['threads'])
+	print ("   alignments: %s/genes.m8" % args['tmp_dir'])
 
 	print ("\n## Finding top hits to db")
 	genes = {}
@@ -198,11 +201,14 @@ def main():
 			genes[aln['qid']].ref_taxa = ref_taxa
 		elif float(aln['score']) > float(genes[aln['qid']].aln['score']):
 			genes[aln['qid']].ref_taxa = ref_taxa
+	print ("   %s genes with a database hit" % len(genes))
 
-	print ("\n## Classifying genes at lowest taxonomic rank")
+	print ("\n## Classifying genes at each taxonomic rank")
+	counts = {}
 	for gene in genes.values():
 		for ref_taxon in gene.ref_taxa:
 			rank = ref_taxon.split('__')[0]
+			if rank not in counts: counts[rank] = 0
 			if rank == 't':
 				continue
 			elif float(gene.aln['pid']) < min_pid[rank]:
@@ -211,8 +217,10 @@ def main():
 				continue
 			elif gene.aln['tcov'] < 0.4:
 				continue
-			else:
-				gene.taxa[rank] = ref_taxon
+			gene.taxa[rank] = ref_taxon
+			counts[rank] += 1
+	for rank in ranks:
+		print ("   %s: %s classified genes" % (rank_names[rank], counts[rank]))
 
 	print ("\n## Taxonomically classifying contigs")
 	contigs = {}
@@ -229,10 +237,23 @@ def main():
 	for contig in contigs.values():
 		contig.classify()
 
+	# summarize
+	counts = {}
+	for contig in contigs.values():
+		for rank, taxon in contig.cons_taxa.items():
+			if rank not in counts:
+				counts[rank] = 0
+			if taxon is not None:
+				counts[rank] += 1
+	print ("   total contigs: %s" % len(contigs))
+	for rank in ranks:
+		print ("   %s: %s classified contigs" % (rank_names[rank], counts[rank]))
+
 	print ("\n## Taxonomically classifying genome")
 	bin = Bin()
 	bin.classify(contigs, args['min_bin_fract'], args['min_contig_fract'],
 	             args['min_gene_fract'], args['min_genes'], args['lowest_rank'])
+	print ("   consensus taxon: %s" % bin.cons_taxon)
 
 	print ("\n## Identifying taxonomically discordant contigs")
 	if bin.cons_taxon is not None:

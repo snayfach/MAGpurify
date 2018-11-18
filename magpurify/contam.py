@@ -59,7 +59,7 @@ def main():
 
 	print ("\n## Searching database with BLASTN")
 	for target in ['hg38', 'phix']:
-		db = '%s/contaminants/%s/%s' % (args['db'], target, target)
+		db = '%s/known-contam/%s/%s' % (args['db'], target, target)
 		out = '%s/%s.m8' % (args['tmp_dir'], target)
 		run_blastn(args['fna'], db, out, args['threads'], args['qcov'], args['pid'], args['evalue'])
 
