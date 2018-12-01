@@ -13,8 +13,13 @@ Install required python libraries:
 
 Install 3rd party programs:  	
 
-* [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download), [Prodigal](https://github.com/hyattpd/Prodigal), [HMMER](http://hmmer.org/download.html), and [LAST](http://last.cbrc.jp)
+* [BLAST (v2.7.1)](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+* [Prodigal (v2.6.3)](https://github.com/hyattpd/Prodigal)
+* [HMMER (v3.1b2)](http://hmmer.org/download.html)
+* [LAST (v828)](http://last.cbrc.jp)
+* [Mash (v2.0)](https://github.com/marbl/Mash/releases)
 * Make sure these programs are located on your PATH
+* Tested versions indicated, but other versions might also work
 
 Download the reference database: [MAGpurify-db-v1.0.tar.bz2](http://bit.ly/MAGpurify-db)
 
