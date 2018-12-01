@@ -22,7 +22,7 @@ def fetch_args():
 		help="""Path to reference database
 By default, the IMAGEN_DB environmental variable is used""")
 	parser.add_argument('--pid', type=float, default=98,
-		help="""Minimum % identity to reference (default=98)""")
+		help="""Minimum %% identity to reference (default=98)""")
 	parser.add_argument('--evalue', type=float, default=1e-5,
 		help="""Maximum evalue (default=1e-5)""")
 	parser.add_argument('--qcov', type=float, default=25,

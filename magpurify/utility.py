@@ -143,7 +143,7 @@ def run_prodigal(fna_path, out_dir):
 def run_lastal(db_dir, out_dir, threads=1, seed_freq=10):
 	cmd = "lastal -p BLOSUM62 -P 1 -f blasttab+ "
 	cmd += "-m %s " % seed_freq
-	cmd += "%s/csmg/markers.faa " % db_dir
+	cmd += "%s/clade-markers/markers.faa " % db_dir
 	cmd += "%s/genes.faa " % out_dir
 	cmd += "-P %s " % threads
 	cmd += "> %s/genes.m8 " % out_dir
@@ -155,7 +155,7 @@ def run_hmmsearch(db_dir, in_path, out_dir, threads=1):
 	cmd += "--domtblout %s/phyeco.hmmsearch " % out_dir
 	cmd += "--cpu %s " % threads
 	cmd += "--cut_ga "
-	cmd += "%s/uscmg/PhyEco.hmm " % db_dir
+	cmd += "%s/phylo-markers/PhyEco.hmm " % db_dir
 	cmd += "%s/genes.faa " % in_path
 	out, err = run_process(cmd)
 
