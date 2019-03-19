@@ -1,4 +1,7 @@
 # MAGpurify
+
+<b> This is not a production-ready software repository and is still under active development. Bugs and feature requests will not addressed. Please use with caution. If this code is useful, please cite: http://dx.doi.org/10.1038/s41586-019-1058-x</b>
+
 This package uses a combination of different features and algorithms to identify contamination in metagenome-assembled genomes (MAGs). Contamination is defined as contigs that originated from a different species relative to the dominant organism present in the MAG.
 
 Each module in the software package was designed to be highly specific. This means that not all contamination (contigs from other species) will be removed, but very few contigs will be incorrectly removed. Feel free to modify the default parameters for more sensitive detection of contamination.
