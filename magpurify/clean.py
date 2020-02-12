@@ -25,11 +25,8 @@ def fetch_args():
 
 
 def main():
-
     args = fetch_args()
-
     utility.check_input(args)
-
     print("\n## Reading genome bin")
     bin = {}
     for id, seq in utility.parse_fasta(args['fna']):
@@ -58,7 +55,6 @@ def main():
             print("   %s: %s contigs, %s Kbp" % (program, len(contigs), bases))
     flagged_contigs = list(set(flagged_contigs))
     flagged_length = round(sum(len(bin[id]) for id in flagged_contigs) / 1000, 2)
-
     print("\n## Removing flagged contigs")
     clean = bin.copy()
     for id in flagged_contigs:
@@ -66,7 +62,6 @@ def main():
     clean_length = round(sum(len(_) for _ in clean.values()) / 1000, 2)
     print("   removed: %s contigs, %s Kbp" % (len(flagged_contigs), flagged_length))
     print("   remains: %s contigs, %s Kbp" % (len(clean), clean_length))
-
     out = '%s/cleaned_bin.fna' % args['out']
     with open(out, 'w') as f:
         for id, seq in clean.items():

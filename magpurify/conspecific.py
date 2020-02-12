@@ -102,7 +102,6 @@ def run_mash(mash_sketch, fna_path, tmp_dir, threads=1):
 
 
 def find_conspecific(tmp_dir, max_dist, exclude):
-
     targets = []
     for rec in utility.parse_mash('%s/mash.dist' % tmp_dir):
         if rec['query'] == rec['target']:
@@ -115,9 +114,7 @@ def find_conspecific(tmp_dir, max_dist, exclude):
             continue
         else:
             targets.append([rec['target'], rec['dist']])
-
     targets = sorted(targets, key=itemgetter(1))
-
     return targets
 
 
@@ -162,24 +159,20 @@ def align_contigs(args, genomes):
 
 
 def find_contig_targets(args, genomes, alignments):
-
     contigs = dict(
         [
             (id, {'hits': 0, 'len': len(seq), 'genomes': []})
             for id, seq in utility.parse_fasta(args['fna'])
         ]
     )
-
     for genome, alns in zip(genomes, alignments):
         hits = id_blast_hits(alns, args['contig_aln'], args['contig_pid'])
         for contig in hits:
             contigs[contig]['hits'] += 1
             contigs[contig]['genomes'].append(genome[0])
-
     for id in contigs:
         hit_rate = contigs[id]['hits'] / float(len(alignments))
         contigs[id]['hit_rate'] = hit_rate
-
     return contigs
 
 
@@ -194,15 +187,12 @@ def flag_contigs(args, contigs):
 
 
 def main():
-
     args = fetch_args()
-
     utility.add_tmp_dir(args)
     utility.check_input(args)
     utility.check_dependencies(['mash'])
     if not os.path.exists(args['mash_sketch']):
         sys.exit("\nError: mash sketch '%s' not found\n" % args['mash_sketch'])
-
     print("\n## Finding conspecific genomes in database")
     run_mash(args['mash_sketch'], args['fna'], args['tmp_dir'], args['threads'])
     genomes = find_conspecific(args['tmp_dir'], args['mash_dist'], args['exclude'])
@@ -214,10 +204,8 @@ def main():
             f.write(genome_id + '\t' + str(mash_dist) + '\n')
     print("   list of genomes: %s" % (out))
     print("   mash output: %s/mash.dist" % args['tmp_dir'])
-
     if len(genomes) < args['min_genomes']:
         sys.exit("\nError: insufficient number of conspecific genomes\n")
-
     if len(genomes) > args['max_genomes']:
         print("\n## Selecting top %s most-similar genomes" % args['max_genomes'])
         genomes = genomes[0 : args['max_genomes']]
@@ -227,12 +215,10 @@ def main():
             for genome_id, mash_dist in genomes:
                 f.write(genome_id + '\t' + str(mash_dist) + '\n')
         print("   list of genomes: %s" % (out))
-
     print("\n## Performing pairwise alignment of contigs in bin to database genomes")
     alignments = align_contigs(args, genomes)
     num_alns = sum(len(_.split('\n')) for _ in alignments)
     print("   total alignments: %s" % num_alns)
-
     print("\n## Summarizing alignments")
     contigs = find_contig_targets(args, genomes, alignments)
     out = '%s/contig_hits.tsv' % args['tmp_dir']
@@ -242,7 +228,6 @@ def main():
             row = [contig, str(values['len']), '%s/%s' % (values['hits'], len(genomes))]
             f.write('\t'.join(row) + '\n')
     print("   contig features: %s" % out)
-
     print("\n## Identifying contigs with no conspecific alignments")
     flagged_contigs = flag_contigs(args, contigs)
     flagged_length = round(sum(contigs[id]['len'] for id in flagged_contigs) / 1000, 2)

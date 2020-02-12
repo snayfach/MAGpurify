@@ -226,12 +226,10 @@ class Bin:
 
 
 def main():
-
     args = fetch_args()
     utility.add_tmp_dir(args)
     utility.check_input(args)
     utility.check_database(args)
-
     print("\n## Reading database info")
     ref_taxonomy = read_ref_taxonomy(args['db'])
     taxon_to_taxonomy = {}
@@ -251,11 +249,9 @@ def main():
             'g': 20,
             's': 19,
         }
-
     print("\n## Calling genes with Prodigal")
     utility.run_prodigal(args['fna'], args['tmp_dir'])
     print("   all genes: %s/genes.[ffn|faa]" % args['tmp_dir'])
-
     print(
         "\n## Performing pairwise alignment of genes against MetaPhlan2 db of clade-specific genes"
     )
@@ -265,14 +261,12 @@ def main():
     print("\n## Finding top hits to db")
     genes = {}
     for aln in utility.parse_last(args['tmp_dir'] + '/genes.m8'):
-
         # clade exclusion
         ref_taxa = ref_taxonomy[aln['tid']].split('|')
         if args['exclude_clades'] and any(
             [taxon in ref_taxa for taxon in args['exclude_clades'].split(',')]
         ):
             continue
-
         # initialize gene
         if aln['qid'] not in genes:
             genes[aln['qid']] = Gene()
@@ -286,7 +280,6 @@ def main():
         elif float(aln['score']) > float(genes[aln['qid']].aln['score']):
             genes[aln['qid']].ref_taxa = ref_taxa
     print("   %s genes with a database hit" % len(genes))
-
     print("\n## Classifying genes at each taxonomic rank")
     counts = {}
     for gene in genes.values():
@@ -306,22 +299,18 @@ def main():
             counts[rank] += 1
     for rank in ranks:
         print("   %s: %s classified genes" % (rank_names[rank], counts[rank]))
-
     print("\n## Taxonomically classifying contigs")
     contigs = {}
     for id, seq in utility.parse_fasta(args['fna']):
         contigs[id] = Contig()
         contigs[id].id = id
         contigs[id].length = len(seq)
-
     # aggregate hits by contig
     for gene in genes.values():
         contigs[gene.contig_id].genes.append(gene)
-
     # classify contigs at each level
     for contig in contigs.values():
         contig.classify()
-
     # summarize
     counts = {}
     for contig in contigs.values():
@@ -345,7 +334,6 @@ def main():
         args['lowest_rank'],
     )
     print("   consensus taxon: %s" % bin.cons_taxon)
-
     print("\n## Identifying taxonomically discordant contigs")
     if bin.cons_taxon is not None:
         bin.rank_index = (

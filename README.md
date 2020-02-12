@@ -8,13 +8,13 @@ Each module in the software package was designed to be highly specific. This mea
 
 ## Installation
 
-Clone the repo from github:  
+Clone the repo from github:
 `git clone https://github.com/snayfach/MAGpurify`
 
 Install required python libraries:
 `pip install --user pandas numpy sklearn biopython`
 
-Install 3rd party programs:  	
+Install 3rd party programs:
 
 * [BLAST (v2.7.1)](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 * [Prodigal (v2.6.3)](https://github.com/hyattpd/Prodigal)
@@ -26,12 +26,12 @@ Install 3rd party programs:
 
 Download the reference database: [MAGpurify-db-v1.0.tar.bz2](http://bit.ly/MAGpurify-db)
 
-And unpack the database:  
-`tar -jxvf MAGpurify-db-v1.0.tar.bz2`   
+And unpack the database:
+`tar -jxvf MAGpurify-db-v1.0.tar.bz2`
 
- Update your environment:  
-`export PATH=$PATH:/path/to/MAGpurify`   
-`export MAGPURIFYDB=/path/to/MAGpurify-db-v1.0`   
+ Update your environment:
+`export PATH=$PATH:/path/to/MAGpurify`
+`export MAGPURIFYDB=/path/to/MAGpurify-db-v1.0`
 
 
 ## A quick overview
@@ -55,8 +55,8 @@ Commands:
 Note: use run_qc.py <command> -h to view usage for a specific command
 ```
 
-First, identify incorrectly binned contigs using: `run_qc.py <command> <input genome> <output directory>`  
-And then remove these contigs using: `run_qc.py clean-bin <input genome> <output directory>`  
+First, identify incorrectly binned contigs using: `run_qc.py <command> <input genome> <output directory>`
+And then remove these contigs using: `run_qc.py clean-bin <input genome> <output directory>`
 It's as simple as that!
 
 All of the modules can be run using the standard MAGpurify database, with the exception of the `conspecific` module which requires that you build your own database (see below)
@@ -65,18 +65,18 @@ All of the modules can be run using the standard MAGpurify database, with the ex
 
 The next few lines will show you how to run the software using a single MAG included with the software.
 
-First, run the individual modules to predict contamination in the example `example/test.fna` file and store the results in `example/output`:  
-`run_qc.py phylo-markers example/test.fna example/output`  
-`run_qc.py clade-markers example/test.fna example/output`  
-`run_qc.py tetra-freq example/test.fna example/output`  
-`run_qc.py gc-content example/test.fna example/output`  
-`run_qc.py known-contam example/test.fna example/output`  
+First, run the individual modules to predict contamination in the example `example/test.fna` file and store the results in `example/output`:
+`run_qc.py phylo-markers example/test.fna example/output`
+`run_qc.py clade-markers example/test.fna example/output`
+`run_qc.py tetra-freq example/test.fna example/output`
+`run_qc.py gc-content example/test.fna example/output`
+`run_qc.py known-contam example/test.fna example/output`
 
-The output of each module is stored in the output directory:  
-`ls example/output`  
+The output of each module is stored in the output directory:
+`ls example/output`
 `> clade-markers gc-content  known-contam  phylo-markers  tetra-freq`
 
-Now remove the contamintion from the bin:  
+Now remove the contamintion from the bin:
 `run_qc.py clean-bin example/test.fna example/output`
 
 You should see the following output:
@@ -103,13 +103,13 @@ In summary, 3 of the 6 modules predicted at least one contaminant and the cleane
 
 ## An example using the conspecific module
 
-To run the conspecific module, you need to build your own reference database using Mash. We have provided some dummy files to illustrate this:  
+To run the conspecific module, you need to build your own reference database using Mash. We have provided some dummy files to illustrate this:
 `mash sketch -l example/ref_genomes.list -o example/ref_genomes`
 
 Which will create a Mash sketch of the genomes listed in `example/ref_genomes.list` that are located in `example/ref_genomes`. The sketch will be written to `example/ref_genomes.msh`
 
-Now you can run the conspecific module: 
-`run_qc.py conspecific example/test.fna example/output --mash-sketch example/ref_genomes.msh`  
+Now you can run the conspecific module:
+`run_qc.py conspecific example/test.fna example/output --mash-sketch example/ref_genomes.msh`
 
 Which should produce the output:
 
@@ -135,23 +135,23 @@ So, the conspecific module alone identified 238 putative contaminants! This illu
 
 ## Details on the individual modules
 
-<b>phylo-markers</b>  
+<b>phylo-markers</b>
 This module works by taxonomically annotating your contigs based on a database of phylogenetic marker genes from the PhyEco database and identifying taxonomically discordant contigs.
 
-<b>clade-markers</b>   
-This module works in a very similar way to `phylo-markers`, but instead uses clade-specific markers from the MetaPhlAn 2 database for taxonomic annotation. 
+<b>clade-markers</b>
+This module works in a very similar way to `phylo-markers`, but instead uses clade-specific markers from the MetaPhlAn 2 database for taxonomic annotation.
 
-<b>conspecific</b>   
-The logic behind this module is that strains of the same species should have similarity along most of the genome. Therefore, this module works by first finding strains of the same species, and then performing pairwise alignment of contigs. Contaminants are identified which do not align at all between genomes. 
+<b>conspecific</b>
+The logic behind this module is that strains of the same species should have similarity along most of the genome. Therefore, this module works by first finding strains of the same species, and then performing pairwise alignment of contigs. Contaminants are identified which do not align at all between genomes.
 
-<b>tetra-freq</b>   
+<b>tetra-freq</b>
 This module works by identifying contigs with outlier nucleotide composition based on tetranucleotide frequencies (TNF). In order to reduce TNF down to a single dimension, principal component analysis (PCA) is performed and the first principal component is used.
 
-<b>gc-content</b>   
+<b>gc-content</b>
 This module works by identifying contigs with outlier nucleotide composition based on GC content.
 
-<b>known-contam</b>   
+<b>known-contam</b>
 This module works by identifying contigs that match a database of known contaminants. So far, the human genome and phiX genome are the only ones in the database.
 
-<b>read-depth</b>   
+<b>read-depth</b>
 <i>coming soon...</i>

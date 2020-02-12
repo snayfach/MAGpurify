@@ -1,5 +1,6 @@
 import sys, os
 from Bio import SeqIO
+import subprocess as sp
 
 
 def add_tmp_dir(args):
@@ -50,8 +51,6 @@ def check_database(args):
 
 def run_process(command):
     """ Capture stdout, stderr. Check unix exit code and exit if non-zero """
-    import subprocess as sp
-
     process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
     out, err = process.communicate()
     if process.returncode != 0:

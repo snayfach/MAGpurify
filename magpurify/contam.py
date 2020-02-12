@@ -68,18 +68,14 @@ def run_blastn(query, db, out, threads, qcov=25, pid=98, evalue=1e-5):
 
 
 def main():
-
     args = fetch_args()
-
     utility.add_tmp_dir(args)
     utility.check_input(args)
     utility.check_dependencies(['blastn'])
     utility.check_database(args)
-
     tmp_dir = '%s/%s' % (args['out'], args['program'])
     if not os.path.exists(args['tmp_dir']):
         os.makedirs(args['tmp_dir'])
-
     print("\n## Searching database with BLASTN")
     for target in ['hg38', 'phix']:
         db = '%s/known-contam/%s/%s' % (args['db'], target, target)
@@ -93,7 +89,6 @@ def main():
             args['pid'],
             args['evalue'],
         )
-
     print("\n## Identifying contigs with hits to db")
     flagged = set([])
     for target in ['hg38', 'phix']:
