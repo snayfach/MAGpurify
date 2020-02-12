@@ -128,6 +128,7 @@ def blastn(query, target, outdir, id):
         cmd += "-max_target_seqs 1 -max_hsps 1 "
         cmd += "-query %s -subject %s " % (query, target)
         out, err = utility.run_process(cmd)
+        out = out.decode("utf-8")
         open(out_path, 'w').write(out)
     else:
         out = open(out_path).read()
