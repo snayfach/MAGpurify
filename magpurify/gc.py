@@ -48,7 +48,7 @@ def main():
     args = fetch_args()
     utility.add_tmp_dir(args)
     utility.check_input(args)
-    print("\n## Computing mean genome-wide GC content")
+    print("\n## Computing median contig GC content")
     contigs = {}
     for id, seq in utility.parse_fasta(args['fna']):
         contig = Contig()
@@ -56,14 +56,11 @@ def main():
         contig.seq = str(seq)
         contig.gc = round(SeqUtils.GC(seq), 2)
         contigs[id] = contig
-    mean = np.mean([c.gc for c in contigs.values()])
-    std = np.std([c.gc for c in contigs.values()])
-    print("\n## Computing per-contig deviation from mean")
+    median = np.median([c.gc for c in contigs.values()])
+    print("\n## Computing per-contig deviation from median")
     for contig in contigs.values():
         contig.values = {}
-        contig.values['delta'] = abs(contig.gc - mean)
-        contig.values['percent'] = 100 * abs(contig.gc - mean) / mean
-        contig.values['z-score'] = abs(contig.gc - mean) / std
+        contig.values['delta'] = abs(contig.gc - median)
     print("\n## Identifying outlier contigs")
     flagged = []
     for contig in contigs.values():

@@ -73,12 +73,12 @@ def main():
     # init data
     kmer_counts = init_kmers()
     contigs = {}
-    for rec in Bio.SeqIO.parse(args['fna'], 'fasta'):
+    for id, seq in utility.parse_fasta(args['fna']):
         contig = Contig()
-        contig.id = rec.id
-        contig.seq = str(rec.seq)
+        contig.id = id
+        contig.seq = str(seq)
         contig.kmers = kmer_counts.copy()
-        contigs[rec.id] = contig
+        contigs[id] = contig
 
     # count kmers
     for contig in contigs.values():
@@ -87,9 +87,9 @@ def main():
             kmer_fwd = contig.seq[start:stop]
             kmer_rev = str(Bio.Seq.Seq(kmer_fwd).reverse_complement())
             if kmer_fwd in kmer_counts:
-                contigs[rec.id].kmers[kmer_fwd] += 1
+                contigs[id].kmers[kmer_fwd] += 1
             elif kmer_rev in kmer_counts:
-                contigs[rec.id].kmers[kmer_rev] += 1
+                contigs[id].kmers[kmer_rev] += 1
             start += step
             stop += step
 
@@ -109,18 +109,13 @@ def main():
     pc1 = pca.components_[0]
 
     print(
-        "\n## Computing per-contig deviation from the mean along the first principal component"
+        "\n## Computing per-contig deviation from the median along the first principal component"
     )
-    mean_pc = np.mean(pc1)
-    std_pc = np.std(pc1)
+    median_pc = np.median(pc1)
     for contig_id, contig_pc in zip(list(df.columns), pc1):
         contigs[contig_id].pc = contig_pc
         contigs[contig_id].values = {}
-        contigs[contig_id].values['zscore'] = (
-            abs(contig_pc - mean_pc) / std_pc if std_pc > 0 else 0.0
-        )
-        contigs[contig_id].values['delta'] = abs(contig_pc - mean_pc)
-        contigs[contig_id].values['percent'] = 100 * abs(contig_pc - mean_pc) / mean_pc
+        contigs[contig_id].values['delta'] = abs(contig_pc - median_pc)
 
     print("\n## Identifying outlier contigs")
     flagged = []
