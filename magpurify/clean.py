@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import os
-from . import utility
-import sys
 import argparse
+import os
+import sys
 from operator import itemgetter
+from . import utility
 
 
 def fetch_args():

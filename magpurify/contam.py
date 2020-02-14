@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
+import argparse
 import os
 import sys
 from . import utility
-import argparse
 
 
 def fetch_args():
@@ -101,4 +101,3 @@ def main():
     with open(out, 'w') as f:
         for contig in flagged:
             f.write(contig + '\n')
-

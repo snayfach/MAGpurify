@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import os
-from . import utility
-import sys
 import argparse
+import os
+import sys
 from operator import itemgetter
+from . import utility
 
 
 def fetch_args():
@@ -237,4 +237,3 @@ def main():
         for contig in flagged_contigs:
             f.write(contig + '\n')
     print("   flagged contigs: %s" % out)
-

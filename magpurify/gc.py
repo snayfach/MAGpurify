@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-import sys
-from . import utility
-import numpy as np
 import argparse
 import os
+import sys
+import numpy as np
 from Bio import SeqUtils
+from . import utility
 
 
 def fetch_args():
@@ -48,7 +48,7 @@ def main():
     args = fetch_args()
     utility.add_tmp_dir(args)
     utility.check_input(args)
-    print("\n## Computing median contig GC content")
+    print("\n## Computing mean contig GC content")
     contigs = {}
     for id, seq in utility.parse_fasta(args['fna']):
         contig = Contig()
@@ -56,11 +56,11 @@ def main():
         contig.seq = str(seq)
         contig.gc = round(SeqUtils.GC(seq), 2)
         contigs[id] = contig
-    median = np.median([c.gc for c in contigs.values()])
-    print("\n## Computing per-contig deviation from median")
+    mean = np.mean([c.gc for c in contigs.values()])
+    print("\n## Computing per-contig deviation from mean")
     for contig in contigs.values():
         contig.values = {}
-        contig.values['delta'] = abs(contig.gc - median)
+        contig.values['delta'] = abs(contig.gc - mean)
     print("\n## Identifying outlier contigs")
     flagged = []
     for contig in contigs.values():
@@ -71,4 +71,3 @@ def main():
     with open(out, 'w') as f:
         for contig in flagged:
             f.write(contig + '\n')
-

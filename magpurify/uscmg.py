@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 
-import os, sys, csv
-from . import utility
-from collections import Counter
 import argparse
+import csv
+import os
+import sys
+from collections import Counter
+from . import utility
 
 
 def parse_args():
@@ -468,4 +470,3 @@ def main():
     with open(out, 'w') as f:
         for contig in flagged:
             f.write(contig + '\n')
-

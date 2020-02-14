@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-import sys, Bio.Seq
-from sklearn.decomposition import PCA
+import argparse
+import itertools
+import os
+import sys
+import Bio.Seq
 import numpy as np
 import pandas as pd
+from sklearn.decomposition import PCA
 from . import utility
-import argparse
-import os
 
 
 def fetch_args():
@@ -42,18 +44,15 @@ def add_defaults(args):
 
 def init_kmers():
     tetra = {}
-    for b1 in list('ACGT'):
-        for b2 in list('ACGT'):
-            for b3 in list('ACGT'):
-                for b4 in list('ACGT'):
-                    kmer_fwd = ''.join([b1, b2, b3, b4])
-                    kmer_rev = str(Bio.Seq.Seq(kmer_fwd).reverse_complement())
-                    if kmer_fwd in tetra:
-                        continue
-                    elif kmer_rev in tetra:
-                        continue
-                    else:
-                        tetra[kmer_fwd] = 0
+    for i in itertools.product("ACGT", repeat=4):
+        kmer_fwd = ''.join(i)
+        kmer_rev = utility.reverse_complement(kmer_fwd)
+        if kmer_fwd in tetra:
+            continue
+        elif kmer_rev in tetra:
+            continue
+        else:
+            tetra[kmer_fwd] = 0
     return tetra
 
 
@@ -85,11 +84,11 @@ def main():
         start, stop, step = 0, 4, 1
         while stop <= len(contig.seq):
             kmer_fwd = contig.seq[start:stop]
-            kmer_rev = str(Bio.Seq.Seq(kmer_fwd).reverse_complement())
             if kmer_fwd in kmer_counts:
-                contigs[id].kmers[kmer_fwd] += 1
-            elif kmer_rev in kmer_counts:
-                contigs[id].kmers[kmer_rev] += 1
+                contig.kmers[kmer_fwd] += 1
+            else:
+                kmer_rev = utility.reverse_complement(kmer_fwd)
+                contig.kmers[kmer_rev] += 1
             start += step
             stop += step
 
@@ -109,13 +108,13 @@ def main():
     pc1 = pca.components_[0]
 
     print(
-        "\n## Computing per-contig deviation from the median along the first principal component"
+        "\n## Computing per-contig deviation from the mean along the first principal component"
     )
-    median_pc = np.median(pc1)
+    mean_pc = np.mean(pc1)
     for contig_id, contig_pc in zip(list(df.columns), pc1):
         contigs[contig_id].pc = contig_pc
         contigs[contig_id].values = {}
-        contigs[contig_id].values['delta'] = abs(contig_pc - median_pc)
+        contigs[contig_id].values['delta'] = abs(contig_pc - mean_pc)
 
     print("\n## Identifying outlier contigs")
     flagged = []
@@ -127,4 +126,3 @@ def main():
     with open(out, 'w') as f:
         for contig in flagged:
             f.write(contig + '\n')
-
