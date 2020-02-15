@@ -96,21 +96,21 @@ By default, the MAGPURIFYDB environmental variable is used""",
 
 def extract_homologs(tmp_dir):
     # create outdir
-    seqs_dir = "%s/markers" % tmp_dir
+    seqs_dir = f"{tmp_dir}/markers"
     if not os.path.isdir(seqs_dir):
         os.makedirs(seqs_dir)
     # fetch best hits from hmmsearch
-    gene_to_aln = utility.fetch_hmm_best_hits("%s/phyeco.hmmsearch" % tmp_dir)
+    gene_to_aln = utility.fetch_hmm_best_hits(f"{tmp_dir}/phyeco.hmmsearch")
     # open output files
     outfiles = {}
     marker_ids = set([aln['qacc'] for aln in list(gene_to_aln.values())])
     for marker_id in marker_ids:
         outfiles[marker_id] = {}
-        outfiles[marker_id]['ffn'] = open("%s/%s.ffn" % (seqs_dir, marker_id), "w")
-        outfiles[marker_id]['faa'] = open("%s/%s.faa" % (seqs_dir, marker_id), "w")
+        outfiles[marker_id]['ffn'] = open(f"{seqs_dir}/{marker_id}.ffn", "w")
+        outfiles[marker_id]['faa'] = open(f"{seqs_dir}/{marker_id}.faa", "w")
     # write seqs
     for ext in ['ffn', 'faa']:
-        in_path = "%s/genes.%s" % (tmp_dir, ext)
+        in_path = f"{tmp_dir}/genes.{ext}"
         for id, seq in utility.parse_fasta(in_path):
             if id in gene_to_aln:
                 marker_id = gene_to_aln[id]['qacc']
@@ -123,10 +123,10 @@ def extract_homologs(tmp_dir):
 
 
 def align_homologs(db_dir, tmp_dir, seq_type, threads):
-    aln_dir = "%s/alns" % tmp_dir
+    aln_dir = f"{tmp_dir}/alns"
     if not os.path.exists(aln_dir):
         os.makedirs(aln_dir)
-    seq_files = os.listdir("%s/markers" % tmp_dir)
+    seq_files = os.listdir(f"{tmp_dir}/markers")
     for file_index, seq_file in enumerate(seq_files):
         marker_id, ext = seq_file.split('.')
         if ext == 'ffn' and seq_type == 'protein':
@@ -135,15 +135,15 @@ def align_homologs(db_dir, tmp_dir, seq_type, threads):
             continue
         if ext == 'faa':
             program = 'blastp' if ext == 'faa' else 'blastn'
-            db_path = '%s/phylo-markers/%s/%s' % (db_dir, program, marker_id)
-            query_path = '%s/markers/%s.%s' % (tmp_dir, marker_id, ext)
-            out_path = '%s/alns/%s.%s.m8' % (tmp_dir, marker_id, ext)
+            db_path = f'{db_dir}/phylo-markers/{program}/{marker_id}'
+            query_path = f'{tmp_dir}/markers/{marker_id}.{ext}'
+            out_path = f'{tmp_dir}/alns/{marker_id}.{ext}.m8'
             utility.run_blastp(db_path, query_path, out_path, threads)
         else:
             program = 'blastn'
-            db_path = '%s/phylo-markers/%s/%s' % (db_dir, program, marker_id)
-            query_path = '%s/markers/%s.%s' % (tmp_dir, marker_id, ext)
-            out_path = '%s/alns/%s.%s.m8' % (tmp_dir, marker_id, ext)
+            db_path = f'{db_dir}/phylo-markers/{program}/{marker_id}'
+            query_path = f'{tmp_dir}/markers/{marker_id}.{ext}'
+            out_path = f'{tmp_dir}/alns/{marker_id}.{ext}.m8'
             utility.run_blastp(db_path, query_path, out_path, threads)
 
 
@@ -279,7 +279,7 @@ def flag_contigs(db_dir, tmp_dir, args):
     # step 0. read in reference data files
     # cutoffs
     cutoffs = {}
-    cutoffs_path = '%s/phylo-markers/max_fscores.tsv' % db_dir
+    cutoffs_path = f'{db_dir}/phylo-markers/max_fscores.tsv'
     reader = csv.DictReader(open(cutoffs_path), delimiter="\t")
     for r in reader:
         key = (r['marker_id'], r['seq_type'], r['score_type'], r['taxlevel'])
@@ -287,7 +287,7 @@ def flag_contigs(db_dir, tmp_dir, args):
         cutoffs[key] = value
     # taxonomy
     taxonomy = {}
-    taxonomy_path = '%s/phylo-markers/genome_taxonomy.tsv' % db_dir
+    taxonomy_path = f'{db_dir}/phylo-markers/genome_taxonomy.tsv'
     reader = csv.DictReader(open(taxonomy_path), delimiter="\t")
     for r in reader:
         taxonomy[r['genome_id']] = r['taxonomy']
@@ -295,9 +295,9 @@ def flag_contigs(db_dir, tmp_dir, args):
     clusters = {}
     for type in ['ffn', 'faa']:
         clusters[type] = {}
-        for file in os.listdir('%s/phylo-markers/%s' % (db_dir, type)):
+        for file in os.listdir(f'{db_dir}/phylo-markers/{type}'):
             if file.split('.')[-1] == 'uc':
-                with open('%s/phylo-markers/%s/%s' % (db_dir, type, file)) as f:
+                with open(f'{db_dir}/phylo-markers/{type}/{file}') as f:
                     for l in f:
                         v = l.rstrip().split()
                         rep_id = v[-1]
@@ -311,7 +311,7 @@ def flag_contigs(db_dir, tmp_dir, args):
     # to do: normalize counts by site of marker gene sets
     marker_ids = set([])
     counts = {'bacteria': 0, 'archaea': 0}
-    for aln_file in os.listdir('%s/alns' % tmp_dir):
+    for aln_file in os.listdir(f'{tmp_dir}/alns'):
         marker_id, seq_type, ext = aln_file.split(".")
         marker_ids.add(marker_id)
     for marker_id in marker_ids:
@@ -334,7 +334,7 @@ def flag_contigs(db_dir, tmp_dir, args):
     # step 2. initialize marker genes found in bin
     bin = Bin()
     bin.genes = {}
-    hmm_path = "%s/phyeco.hmmsearch" % tmp_dir
+    hmm_path = f"{tmp_dir}/phyeco.hmmsearch"
     for gene_id, aln in list(utility.fetch_hmm_best_hits(hmm_path).items()):
         if aln['qacc'] not in markers:
             continue
@@ -451,17 +451,17 @@ def main():
 
     print("\n## Calling genes with Prodigal")
     utility.run_prodigal(args['fna'], args['tmp_dir'])
-    print("   all genes: %s/genes.[ffn|faa]" % args['tmp_dir'])
+    print(f"   all genes: {args['tmp_dir']}/genes.[ffn|faa]")
 
     print("\n## Identifying PhyEco phylogenetic marker genes with HMMER")
     utility.run_hmmsearch(args['db'], args['tmp_dir'], args['tmp_dir'], args['threads'])
     extract_homologs(args['tmp_dir'])
-    print("   hmm results: %s/phyeco.hmmsearch" % args['tmp_dir'])
-    print("   marker genes: %s/markers" % args['tmp_dir'])
+    print(f"   hmm results: {args['tmp_dir']}/phyeco.hmmsearch")
+    print(f"   marker genes: {args['tmp_dir']}/markers")
 
     print("\n## Performing pairwise BLAST alignment of marker genes against database")
     align_homologs(args['db'], args['tmp_dir'], args['seq_type'], args['threads'])
-    print("   blast results: %s/alns" % args['tmp_dir'])
+    print(f"   blast results: {args['tmp_dir']}/alns")
 
     print("\n## Finding taxonomic outliers")
     flagged = flag_contigs(args['db'], args['tmp_dir'], args)

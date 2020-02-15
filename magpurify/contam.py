@@ -54,16 +54,16 @@ By default, the IMAGEN_DB environmental variable is used""",
 
 def run_blastn(query, db, out, threads, qcov=25, pid=98, evalue=1e-5):
     cmd = "blastn "
-    cmd += "-query %s " % query
-    cmd += "-db %s " % db
-    cmd += "-out %s " % out
+    cmd += f"-query {query} "
+    cmd += f"-db {db} "
+    cmd += f"-out {out} "
     cmd += "-outfmt '6 std qlen slen' "
     cmd += "-max_target_seqs 1 "
     cmd += "-max_hsps 1 "
-    cmd += "-qcov_hsp_perc %s " % qcov
-    cmd += "-perc_identity %s " % pid
-    cmd += "-evalue %s " % evalue
-    cmd += "-num_threads %s " % threads
+    cmd += f"-qcov_hsp_perc {qcov} "
+    cmd += f"-perc_identity {pid} "
+    cmd += f"-evalue {evalue} "
+    cmd += f"-num_threads {threads} "
     utility.run_process(cmd)
 
 
@@ -76,8 +76,8 @@ def main():
     utility.add_tmp_dir(args)
     print("\n## Searching database with BLASTN")
     for target in ['hg38', 'phix']:
-        db = '%s/known-contam/%s/%s' % (args['db'], target, target)
-        out = '%s/%s.m8' % (args['tmp_dir'], target)
+        db = f"{args['db']}/known-contam/{target}/{target}"
+        out = f"{args['tmp_dir']}/{target}.m8"
         run_blastn(
             args['fna'],
             db,
@@ -90,7 +90,7 @@ def main():
     print("\n## Identifying contigs with hits to db")
     flagged = set([])
     for target in ['hg38', 'phix']:
-        out = '%s/%s.m8' % (args['tmp_dir'], target)
+        out = f"{args['tmp_dir']}/{target}.m8"
         for r in utility.parse_blast(out):
             flagged.add(r['qname'])
     flagged = list(flagged)

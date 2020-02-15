@@ -94,7 +94,7 @@ By default, the MAGPURIFY environmental variable is used""",
 
 def read_ref_taxonomy(db_dir):
     ref_taxonomy = {}
-    inpath = '%s/clade-markers/taxonomy.tsv' % db_dir
+    inpath = f'{db_dir}/clade-markers/taxonomy.tsv'
     for line in open(inpath):
         ref_id, taxonomy = line.rstrip().split()
         ref_taxonomy[ref_id] = taxonomy
@@ -239,12 +239,12 @@ def main():
         }
     print("\n## Calling genes with Prodigal")
     utility.run_prodigal(args['fna'], args['tmp_dir'])
-    print("   all genes: %s/genes.[ffn|faa]" % args['tmp_dir'])
+    print(f"   all genes: {args['tmp_dir']}/genes.[ffn|faa]")
     print(
         "\n## Performing pairwise alignment of genes against MetaPhlan2 db of clade-specific genes"
     )
     utility.run_lastal(args['db'], args['tmp_dir'], args['threads'])
-    print("   alignments: %s/genes.m8" % args['tmp_dir'])
+    print(f"   alignments: {args['tmp_dir']}/genes.m8")
 
     print("\n## Finding top hits to db")
     genes = {}
@@ -286,7 +286,7 @@ def main():
             gene.taxa[rank] = ref_taxon
             counts[rank] += 1
     for rank in ranks:
-        print("   %s: %s classified genes" % (rank_names[rank], counts[rank]))
+        print(f"   {rank_names[rank]}: {counts[rank]} classified genes")
     print("\n## Taxonomically classifying contigs")
     contigs = {}
     for id, seq in utility.parse_fasta(args['fna']):
@@ -309,7 +309,7 @@ def main():
                 counts[rank] += 1
     print("   total contigs: %s" % len(contigs))
     for rank in ranks:
-        print("   %s: %s classified contigs" % (rank_names[rank], counts[rank]))
+        print(f"   {rank_names[rank]}: {counts[rank]} classified contigs")
 
     print("\n## Taxonomically classifying genome")
     bin = Bin()
@@ -321,7 +321,7 @@ def main():
         args['min_genes'],
         args['lowest_rank'],
     )
-    print("   consensus taxon: %s" % bin.cons_taxon)
+    print(f"   consensus taxon: {bin.cons_taxon}")
     print("\n## Identifying taxonomically discordant contigs")
     if bin.cons_taxon is not None:
         bin.rank_index = (

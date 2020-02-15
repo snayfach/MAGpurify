@@ -5,7 +5,7 @@ from Bio import Seq, SeqIO
 
 
 def add_tmp_dir(args):
-    tmp_dir = '%s/%s' % (args['out'], args['program'])
+    tmp_dir = "%s/%s" % (args['out'], args['program'])
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
     args['tmp_dir'] = tmp_dir
@@ -43,7 +43,7 @@ def check_database(args):
         error += "Or set the MAGPURIFYDB environmental variable: export MAGPURIFYDB=/path/to/MAGpurify_db_v1.0.0\n"
         sys.exit(error)
     if not os.path.isdir(args['db']):
-        error = "\nError: Specified reference database does not exist: %s\n" % args['db']
+        error = f"\nError: Specified reference database does not exist: {args['db']}\n"
         error += (
             "\nCheck that you've entered the path correctly and the database exists\n"
         )

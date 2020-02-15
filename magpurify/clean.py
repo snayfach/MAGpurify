@@ -32,7 +32,7 @@ def main():
     for id, seq in utility.parse_fasta(args['fna']):
         bin[id] = seq
     bin_length = round(sum(len(_) for _ in bin.values()) / 1000, 2)
-    print("   genome length: %s contigs, %s Kbp" % (len(bin), bin_length))
+    print(f"   genome length: {len(bin)} contigs, {bin_length} Kbp")
 
     print("\n## Reading flagged contigs")
     flagged_contigs = []
@@ -46,14 +46,14 @@ def main():
         'known-contam',
     ]
     for program in programs:
-        path = '%s/%s/flagged_contigs' % (args['out'], program)
+        path = f"{args['out']}/{program}/flagged_contigs"
         if not os.path.exists(path):
-            print("   %s: no output file found" % program)
+            print(f"   {program}: no output file found")
         else:
             contigs = [_.rstrip() for _ in open(path)]
             bases = round(sum(len(bin[id]) for id in contigs) / 1000, 2)
             flagged_contigs += contigs
-            print("   %s: %s contigs, %s Kbp" % (program, len(contigs), bases))
+            print(f"   {program}: {len(contigs)} contigs, {bases} Kbp")
     flagged_contigs = list(set(flagged_contigs))
     flagged_length = round(sum(len(bin[id]) for id in flagged_contigs) / 1000, 2)
     print("\n## Removing flagged contigs")
@@ -61,10 +61,10 @@ def main():
     for id in flagged_contigs:
         del clean[id]
     clean_length = round(sum(len(_) for _ in clean.values()) / 1000, 2)
-    print("   removed: %s contigs, %s Kbp" % (len(flagged_contigs), flagged_length))
-    print("   remains: %s contigs, %s Kbp" % (len(clean), clean_length))
-    out = '%s/cleaned_bin.fna' % args['out']
+    print(f"   removed: {len(flagged_contigs)} contigs, {flagged_length} Kbp")
+    print(f"   remains: {len(clean)} contigs, {clean_length} Kbp")
+    out = f"{args['out']}/cleaned_bin.fna"
     with open(out, 'w') as f:
         for id, seq in clean.items():
             f.write('>' + id + '\n' + seq + '\n')
-    print("   cleaned bin: %s" % out)
+    print(f"   cleaned bin: {out}")
