@@ -97,7 +97,7 @@ def main():
             flagged.add(r['qname'])
     flagged = list(flagged)
     out = '%s/flagged_contigs' % args['tmp_dir']
-    print("   flagged contigs: %s" % out)
+    print(f"   {len(flagged)} flagged contigs: {out}")
     with open(out, 'w') as f:
         for contig in flagged:
             f.write(contig + '\n')
