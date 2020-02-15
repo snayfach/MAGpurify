@@ -13,10 +13,10 @@ def fetch_args():
         usage=argparse.SUPPRESS,
         description="MAGpurify: clean module: remove flagged contigs from input genome",
     )
-    parser.add_argument('program', help=argparse.SUPPRESS)
-    parser.add_argument('fna', type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("program", help=argparse.SUPPRESS)
+    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
     parser.add_argument(
-        'out',
+        "out",
         type=str,
         help="""Output directory to store results and intermediate files""",
     )
@@ -29,7 +29,7 @@ def main():
     utility.check_input(args)
     print("\n## Reading genome bin")
     bin = {}
-    for id, seq in utility.parse_fasta(args['fna']):
+    for id, seq in utility.parse_fasta(args["fna"]):
         bin[id] = seq
     bin_length = round(sum(len(_) for _ in bin.values()) / 1000, 2)
     print(f"   genome length: {len(bin)} contigs, {bin_length} Kbp")
@@ -37,13 +37,13 @@ def main():
     print("\n## Reading flagged contigs")
     flagged_contigs = []
     programs = [
-        'phylo-markers',
-        'clade-markers',
-        'conspecific',
-        'tetra-freq',
-        'gc-content',
-        'coverage',
-        'known-contam',
+        "phylo-markers",
+        "clade-markers",
+        "conspecific",
+        "tetra-freq",
+        "gc-content",
+        "coverage",
+        "known-contam",
     ]
     for program in programs:
         path = f"{args['out']}/{program}/flagged_contigs"
@@ -64,7 +64,7 @@ def main():
     print(f"   removed: {len(flagged_contigs)} contigs, {flagged_length} Kbp")
     print(f"   remains: {len(clean)} contigs, {clean_length} Kbp")
     out = f"{args['out']}/cleaned_bin.fna"
-    with open(out, 'w') as f:
+    with open(out, "w") as f:
         for id, seq in clean.items():
-            f.write('>' + id + '\n' + seq + '\n')
+            f.write(">" + id + "\n" + seq + "\n")
     print(f"   cleaned bin: {out}")
