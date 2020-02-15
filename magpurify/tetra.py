@@ -70,27 +70,23 @@ def main():
 
     print("\n## Counting tetranucleotides")
     # init data
-    kmer_counts = init_kmers()
     contigs = {}
     for id, seq in utility.parse_fasta(args['fna']):
         contig = Contig()
         contig.id = id
         contig.seq = str(seq)
-        contig.kmers = kmer_counts.copy()
+        contig.kmers = init_kmers()
         contigs[id] = contig
 
     # count kmers
     for contig in contigs.values():
-        start, stop, step = 0, 4, 1
-        while stop <= len(contig.seq):
-            kmer_fwd = contig.seq[start:stop]
-            if kmer_fwd in kmer_counts:
+        for i in range(len(contig.seq) - 3):
+            kmer_fwd = contig.seq[i : i + 4]
+            if kmer_fwd in contig.kmers:
                 contig.kmers[kmer_fwd] += 1
             else:
                 kmer_rev = utility.reverse_complement(kmer_fwd)
                 contig.kmers[kmer_rev] += 1
-            start += step
-            stop += step
 
     print("\n## Normalizing counts")
     for contig in contigs.values():
