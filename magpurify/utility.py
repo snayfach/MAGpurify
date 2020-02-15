@@ -1,6 +1,7 @@
-import sys, os
-from Bio import SeqIO
+import os
 import subprocess as sp
+import sys
+from Bio import Seq, SeqIO
 
 
 def add_tmp_dir(args):
@@ -47,6 +48,11 @@ def check_database(args):
             "\nCheck that you've entered the path correctly and the database exists\n"
         )
         sys.exit(error)
+
+
+def reverse_complement(sequence):
+    rc = Seq.Seq(sequence).reverse_complement()
+    return str(rc)
 
 
 def run_process(command):
@@ -273,4 +279,3 @@ def parse_fasta(path):
             id = record.id
             seq = str(record.seq).upper()
             yield id, seq
-

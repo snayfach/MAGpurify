@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import sys
 import argparse
+import sys
 
 
 def get_program():
@@ -74,4 +74,3 @@ if __name__ == "__main__":
         from magpurify import clean
 
         clean.main()
-

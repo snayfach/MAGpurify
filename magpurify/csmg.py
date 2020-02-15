@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
-import sys, os, copy, collections, operator
-from . import utility
 import argparse
+import collections
+import copy
+import operator
+import os
+import sys
+from . import utility
 
 ranks = ['k', 'p', 'c', 'o', 'f', 'g', 's']
 rank_names = {
@@ -348,8 +352,7 @@ def main():
         if contig.flagged:
             flagged.append(contig.id)
     out = '%s/flagged_contigs' % args['tmp_dir']
-    print("   flagged contigs: %s" % out)
+    print(f"   {len(flagged)} flagged contigs: {out}")
     with open(out, 'w') as f:
         for contig in flagged:
             f.write(contig + '\n')
-

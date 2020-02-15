@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 
-import os, sys, csv
-from . import utility
-from collections import Counter
 import argparse
+import csv
+import os
+import sys
+from collections import Counter
+from . import utility
 
 
 def parse_args():
@@ -464,8 +466,7 @@ def main():
     print("\n## Finding taxonomic outliers")
     flagged = flag_contigs(args['db'], args['tmp_dir'], args)
     out = '%s/flagged_contigs' % args['tmp_dir']
-    print("   flagged contigs: %s" % out)
+    print(f"   {len(flagged)} flagged contigs: {out}")
     with open(out, 'w') as f:
         for contig in flagged:
             f.write(contig + '\n')
-

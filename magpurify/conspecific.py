@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import os
-from . import utility
-import sys
 import argparse
+import os
+import sys
 from operator import itemgetter
+from . import utility
 
 
 def fetch_args():
@@ -229,12 +229,9 @@ def main():
             f.write('\t'.join(row) + '\n')
     print("   contig features: %s" % out)
     print("\n## Identifying contigs with no conspecific alignments")
-    flagged_contigs = flag_contigs(args, contigs)
-    flagged_length = round(sum(contigs[id]['len'] for id in flagged_contigs) / 1000, 2)
-    print("   %s flagged contigs, %s Kbp" % (len(flagged_contigs), flagged_length))
+    flagged = flag_contigs(args, contigs)
     out = '%s/flagged_contigs' % args['tmp_dir']
     with open(out, 'w') as f:
         for contig in flagged_contigs:
             f.write(contig + '\n')
-    print("   flagged contigs: %s" % out)
-
+    print(f"   {len(flagged)} flagged contigs: {out}")

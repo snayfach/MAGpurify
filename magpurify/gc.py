@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-import sys
-from . import utility
-import numpy as np
 import argparse
 import os
+import sys
+import numpy as np
 from Bio import SeqUtils
+from . import utility
 
 
 def fetch_args():
@@ -48,7 +48,7 @@ def main():
     args = fetch_args()
     utility.add_tmp_dir(args)
     utility.check_input(args)
-    print("\n## Computing mean genome-wide GC content")
+    print("\n## Computing mean contig GC content")
     contigs = {}
     for id, seq in utility.parse_fasta(args['fna']):
         contig = Contig()
@@ -57,21 +57,17 @@ def main():
         contig.gc = round(SeqUtils.GC(seq), 2)
         contigs[id] = contig
     mean = np.mean([c.gc for c in contigs.values()])
-    std = np.std([c.gc for c in contigs.values()])
     print("\n## Computing per-contig deviation from mean")
     for contig in contigs.values():
         contig.values = {}
         contig.values['delta'] = abs(contig.gc - mean)
-        contig.values['percent'] = 100 * abs(contig.gc - mean) / mean
-        contig.values['z-score'] = abs(contig.gc - mean) / std
     print("\n## Identifying outlier contigs")
     flagged = []
     for contig in contigs.values():
         if contig.values['delta'] > args['cutoff']:
             flagged.append(contig.id)
     out = '%s/flagged_contigs' % args['tmp_dir']
-    print("   flagged contigs: %s" % out)
+    print(f"   {len(flagged)} flagged contigs: {out}")
     with open(out, 'w') as f:
         for contig in flagged:
             f.write(contig + '\n')
-

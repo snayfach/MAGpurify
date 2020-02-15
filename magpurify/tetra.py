@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-import sys, Bio.Seq
-from sklearn.decomposition import PCA
+import argparse
+import itertools
+import os
+import sys
+import Bio.Seq
 import numpy as np
 import pandas as pd
+from sklearn.decomposition import PCA
 from . import utility
-import argparse
-import os
 
 
 def fetch_args():
@@ -42,18 +44,15 @@ def add_defaults(args):
 
 def init_kmers():
     tetra = {}
-    for b1 in list('ACGT'):
-        for b2 in list('ACGT'):
-            for b3 in list('ACGT'):
-                for b4 in list('ACGT'):
-                    kmer_fwd = ''.join([b1, b2, b3, b4])
-                    kmer_rev = str(Bio.Seq.Seq(kmer_fwd).reverse_complement())
-                    if kmer_fwd in tetra:
-                        continue
-                    elif kmer_rev in tetra:
-                        continue
-                    else:
-                        tetra[kmer_fwd] = 0
+    for i in itertools.product("ACGT", repeat=4):
+        kmer_fwd = ''.join(i)
+        kmer_rev = utility.reverse_complement(kmer_fwd)
+        if kmer_fwd in tetra:
+            continue
+        elif kmer_rev in tetra:
+            continue
+        else:
+            tetra[kmer_fwd] = 0
     return tetra
 
 
@@ -71,27 +70,23 @@ def main():
 
     print("\n## Counting tetranucleotides")
     # init data
-    kmer_counts = init_kmers()
     contigs = {}
-    for rec in Bio.SeqIO.parse(args['fna'], 'fasta'):
+    for id, seq in utility.parse_fasta(args['fna']):
         contig = Contig()
-        contig.id = rec.id
-        contig.seq = str(rec.seq)
-        contig.kmers = kmer_counts.copy()
-        contigs[rec.id] = contig
+        contig.id = id
+        contig.seq = str(seq)
+        contig.kmers = init_kmers()
+        contigs[id] = contig
 
     # count kmers
     for contig in contigs.values():
-        start, stop, step = 0, 4, 1
-        while stop <= len(contig.seq):
-            kmer_fwd = contig.seq[start:stop]
-            kmer_rev = str(Bio.Seq.Seq(kmer_fwd).reverse_complement())
-            if kmer_fwd in kmer_counts:
-                contigs[rec.id].kmers[kmer_fwd] += 1
-            elif kmer_rev in kmer_counts:
-                contigs[rec.id].kmers[kmer_rev] += 1
-            start += step
-            stop += step
+        for i in range(len(contig.seq) - 3):
+            kmer_fwd = contig.seq[i : i + 4]
+            if kmer_fwd in contig.kmers:
+                contig.kmers[kmer_fwd] += 1
+            else:
+                kmer_rev = utility.reverse_complement(kmer_fwd)
+                contig.kmers[kmer_rev] += 1
 
     print("\n## Normalizing counts")
     for contig in contigs.values():
@@ -112,15 +107,10 @@ def main():
         "\n## Computing per-contig deviation from the mean along the first principal component"
     )
     mean_pc = np.mean(pc1)
-    std_pc = np.std(pc1)
     for contig_id, contig_pc in zip(list(df.columns), pc1):
         contigs[contig_id].pc = contig_pc
         contigs[contig_id].values = {}
-        contigs[contig_id].values['zscore'] = (
-            abs(contig_pc - mean_pc) / std_pc if std_pc > 0 else 0.0
-        )
         contigs[contig_id].values['delta'] = abs(contig_pc - mean_pc)
-        contigs[contig_id].values['percent'] = 100 * abs(contig_pc - mean_pc) / mean_pc
 
     print("\n## Identifying outlier contigs")
     flagged = []
@@ -128,8 +118,7 @@ def main():
         if contig.values['delta'] > args['cutoff']:
             flagged.append(contig.id)
     out = '%s/flagged_contigs' % args['tmp_dir']
-    print("   flagged contigs: %s" % out)
+    print(f"   {len(flagged)} flagged contigs: {out}")
     with open(out, 'w') as f:
         for contig in flagged:
             f.write(contig + '\n')
-
