@@ -50,6 +50,10 @@ def main():
         mag_id_list.append(id)
     mag_coverage_df = coverage_df.loc[mag_id_list]
     largest_mean_coverage_sample = mag_coverage_df.mean(axis=0).idxmax()
+    if mag_coverage_df.shape[1] > 1:
+        print(
+            f"\n## Sample being used for outlier detection: {largest_mean_coverage_sample.split()[0]}"
+        )
     mag_coverage_df = mag_coverage_df.loc[:, largest_mean_coverage_sample]
     if mag_coverage_df.mean() < 1:
         sys.exit(
