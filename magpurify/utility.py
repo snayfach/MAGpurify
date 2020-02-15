@@ -5,7 +5,7 @@ from Bio import Seq, SeqIO
 
 
 def add_tmp_dir(args):
-    tmp_dir = "%s/%s" % (args["out"], args["program"])
+    tmp_dir = f"{args['out']}/{args['program']}"
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
     args["tmp_dir"] = tmp_dir
