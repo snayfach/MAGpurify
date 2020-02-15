@@ -16,6 +16,7 @@ def get_program():
         print('      conspecific: find contigs that fail to align to closely related genomes')
         print('       tetra-freq: find contigs with outlier tetranucleotide frequency')
         print('       gc-content: find contigs with outlier gc content')
+        print('         coverage: find contigs with outlier coverage profile')
         print('     known-contam: find contigs that match a database of known contaminants')
         print('        clean-bin: remove identified contigs from bin')
         print('')
@@ -27,11 +28,11 @@ def get_program():
         'conspecific',
         'tetra-freq',
         'gc-content',
+        'coverage',
         'known-contam',
         'clean-bin',
     ]:
         sys.exit("\nError: Unrecognized command: '%s'\n" % sys.argv[1])
-        quit()
     else:
         return sys.argv[1]
 
@@ -64,6 +65,11 @@ if __name__ == "__main__":
         from magpurify import gc
 
         gc.main()
+
+    if program == 'coverage':
+        from magpurify import coverage
+
+        coverage.main()
 
     if program == 'known-contam':
         from magpurify import contam

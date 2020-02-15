@@ -13,7 +13,7 @@ from . import utility
 
 def fetch_args():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         usage=argparse.SUPPRESS,
         description="MAGpurify: tetra-freq module: find contigs with outlier tetranucleotide frequency",
     )
@@ -36,10 +36,6 @@ def fetch_args():
     )
     args = vars(parser.parse_args())
     return args
-
-
-def add_defaults(args):
-    args['cutoff'] = 0.06
 
 
 def init_kmers():
@@ -117,7 +113,7 @@ def main():
     for contig in contigs.values():
         if contig.values['delta'] > args['cutoff']:
             flagged.append(contig.id)
-    out = '%s/flagged_contigs' % args['tmp_dir']
+    out = f"{args['tmp_dir']}/flagged_contigs"
     print(f"   {len(flagged)} flagged contigs: {out}")
     with open(out, 'w') as f:
         for contig in flagged:

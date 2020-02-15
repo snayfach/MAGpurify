@@ -11,7 +11,7 @@ from . import utility
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         usage=argparse.SUPPRESS,
         description="MAGpurify: phylo-markers module: find taxonomic discordant contigs using db of phylogenetic marker genes",
     )
@@ -465,7 +465,7 @@ def main():
 
     print("\n## Finding taxonomic outliers")
     flagged = flag_contigs(args['db'], args['tmp_dir'], args)
-    out = '%s/flagged_contigs' % args['tmp_dir']
+    out = f"{args['tmp_dir']}/flagged_contigs"
     print(f"   {len(flagged)} flagged contigs: {out}")
     with open(out, 'w') as f:
         for contig in flagged:

@@ -13,14 +13,14 @@ def add_tmp_dir(args):
 
 def check_input(args):
     if not os.path.exists(args['fna']):
-        error = "\nInput file not found: %s\n" % args['fna']
+        error = f"\nInput file not found: {args['fna']}\n"
         sys.exit(error)
 
 
 def check_dependencies(programs):
     for program in programs:
         if not exists_on_env_path(program):
-            error = "\nRequired program '%s' not found\n" % program
+            error = f"\nRequired program '{program}' not found\n"
             error += "Make sure this program has been installed and added to your PATH\n"
             sys.exit(error)
 
@@ -60,10 +60,7 @@ def run_process(command):
     process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
     out, err = process.communicate()
     if process.returncode != 0:
-        err_message = "\nError encountered executing:\n%s\n\nError message:\n%s\n" % (
-            command,
-            err,
-        )
+        err_message = f"\nError encountered executing:\n{command}\n\nError message:\n{err}\n"
         sys.exit(err_message)
     return out, err
 
@@ -216,59 +213,68 @@ def fetch_hmm_best_hits(fpath):
     return gene_to_aln
 
 
+def run_coverm(bam_list, out_dir):
+    cmd = "coverm contig "
+    cmd += "--contig-end-exclusion 75 "
+    cmd += "--min-read-percent-identity 0.97 "
+    cmd += f"--bam-files {' '.join(bam_list)} "
+    cmd += f"> {out_dir}/coverage.tsv"
+    out, err = run_process(cmd)
+
+
 def run_prodigal(fna_path, out_dir):
     cmd = "prodigal "
-    cmd += "-i %s " % fna_path  # input fna
-    cmd += "-a %s/genes.faa " % out_dir  # protein seqs
-    cmd += "-d %s/genes.ffn " % out_dir  # nucleotide seqs
-    cmd += "-o %s/genes.out " % out_dir  # prodigal output
+    cmd += f"-i {fna_path} "  # input fna
+    cmd += f"-a {out_dir}/genes.faa "  # protein seqs
+    cmd += f"-d {out_dir}/genes.ffn "  # nucleotide seqs
+    cmd += f"-o {out_dir}/genes.out "  # prodigal output
     cmd += "> /dev/null"  # prodigal output
     out, err = run_process(cmd)
 
 
 def run_lastal(db_dir, out_dir, threads=1, seed_freq=10):
     cmd = "lastal -p BLOSUM62 -P 1 -f blasttab+ "
-    cmd += "-m %s " % seed_freq
-    cmd += "%s/clade-markers/markers.faa " % db_dir
-    cmd += "%s/genes.faa " % out_dir
-    cmd += "-P %s " % threads
-    cmd += "> %s/genes.m8 " % out_dir
+    cmd += f"-m {seed_freq} "
+    cmd += f"{db_dir}/clade-markers/markers.faa "
+    cmd += f"{out_dir}/genes.faa "
+    cmd += f"-P {threads} "
+    cmd += f"> {out_dir}/genes.m8 "
     out, err = run_process(cmd)
 
 
 def run_hmmsearch(db_dir, in_path, out_dir, threads=1):
     cmd = "hmmsearch "
     cmd += "--noali "
-    cmd += "--domtblout %s/phyeco.hmmsearch " % out_dir
-    cmd += "--cpu %s " % threads
+    cmd += f"--domtblout {out_dir}/phyeco.hmmsearch "
+    cmd += f"--cpu {threads} "
     cmd += "--cut_ga "
-    cmd += "%s/phylo-markers/PhyEco.hmm " % db_dir
-    cmd += "%s/genes.faa " % in_path
+    cmd += f"{db_dir}/phylo-markers/PhyEco.hmm "
+    cmd += f"{in_path}/genes.faa "
     out, err = run_process(cmd)
 
 
 def run_blastp(db_path, query_path, out_path, threads=1, max_targets=1, qcov=40):
     cmd = "blastp "
-    cmd += "-db %s " % db_path
-    cmd += "-query %s " % query_path
-    cmd += "-out %s " % out_path
+    cmd += f"-db {db_path} "
+    cmd += f"-query {query_path} "
+    cmd += f"-out {out_path} "
     cmd += "-outfmt '6 std qlen slen' "
-    cmd += "-num_threads %s " % threads
-    cmd += "-max_target_seqs %s " % max_targets
-    cmd += "-qcov_hsp_perc %s " % qcov
+    cmd += f"-num_threads {threads} "
+    cmd += f"-max_target_seqs {max_targets} "
+    cmd += f"-qcov_hsp_perc {qcov} "
     cmd += "-max_hsps 1 "
     out, err = run_process(cmd)
 
 
 def run_blastn(db_path, query_path, out_path, threads=1, max_targets=1, qcov=40):
     cmd = "blastn -task blastn "
-    cmd += "-db %s " % db_path
-    cmd += "-query %s " % query_path
-    cmd += "-out %s " % out_path
+    cmd += f"-db {db_path} "
+    cmd += f"-query {query_path} "
+    cmd += f"-out {out_path} "
     cmd += "-outfmt '6 std qlen slen' "
-    cmd += "-num_threads %s " % threads
-    cmd += "-max_target_seqs %s " % max_targets
-    cmd += "-qcov_hsp_perc %s " % qcov
+    cmd += f"-num_threads {threads} "
+    cmd += f"-max_target_seqs {max_targets} "
+    cmd += f"-qcov_hsp_perc {qcov} "
     cmd += "-max_hsps 1 "
     out, err = run_process(cmd)
 

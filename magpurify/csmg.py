@@ -22,7 +22,7 @@ rank_names = {
 
 def fetch_args():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         usage=argparse.SUPPRESS,
         description="MAGpurify: clade-markers module: find taxonomic discordant contigs using db of clade-specific marker genes",
     )
@@ -92,15 +92,6 @@ By default, the MAGPURIFY environmental variable is used""",
     return args
 
 
-def add_defaults(args):
-    args['lowest_rank'] = None
-    args['min_genes'] = None
-    args['min_gene_fract'] = 0.0
-    args['min_contig_fract'] = 0.75
-    args['min_bin_fract'] = 0.6
-    args['exclude_clades'] = None
-
-
 def read_ref_taxonomy(db_dir):
     ref_taxonomy = {}
     inpath = '%s/clade-markers/taxonomy.tsv' % db_dir
@@ -167,7 +158,6 @@ class Bin:
         self.taxonomy = [None]
         self.tagged_length = 0
         self.tagged_genes = 0
-
     def classify(
         self,
         contigs,
@@ -177,21 +167,17 @@ class Bin:
         min_genes,
         lowest_rank,
     ):
-
         for rank in ranks:
-
             count_genes = collections.defaultdict(int)
             for contig in contigs.values():
                 for gene in contig.genes:
                     if gene.taxa[rank]:
                         count_genes[gene.taxa[rank]] += 1
-
             count_length = collections.defaultdict(int)
             for contig in contigs.values():
                 contig_taxon = contig.cons_taxa[rank]
                 if contig_taxon is not None:
                     count_length[contig_taxon] += contig.length
-
             if sum(count_length.values()) > 0:
                 cons_taxon = sorted(
                     count_length.items(), key=operator.itemgetter(1), reverse=True
@@ -208,7 +194,6 @@ class Bin:
                 gene_fract = 0.0
                 contig_fract = 0.0
                 bin_fract = 0.0
-
             if bin_fract < min_bin_fract:
                 continue
             elif contig_fract < min_contig_fract:
@@ -224,7 +209,6 @@ class Bin:
                 self.bin_fract = bin_fract
                 self.tagged_genes = sum(count_genes.values())
                 self.tagged_length = sum(count_length.values())
-
             if lowest_rank and rank == lowest_rank:
                 break
 
@@ -351,7 +335,7 @@ def main():
     for contig in contigs.values():
         if contig.flagged:
             flagged.append(contig.id)
-    out = '%s/flagged_contigs' % args['tmp_dir']
+    out = f"{args['tmp_dir']}/flagged_contigs"
     print(f"   {len(flagged)} flagged contigs: {out}")
     with open(out, 'w') as f:
         for contig in flagged:

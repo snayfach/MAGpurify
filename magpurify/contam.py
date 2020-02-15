@@ -8,7 +8,7 @@ from . import utility
 
 def fetch_args():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         usage=argparse.SUPPRESS,
         description="MAGpurify: known-contam module: find contigs that match a database of known contaminants",
     )
@@ -73,9 +73,7 @@ def main():
     utility.check_input(args)
     utility.check_dependencies(['blastn'])
     utility.check_database(args)
-    tmp_dir = '%s/%s' % (args['out'], args['program'])
-    if not os.path.exists(args['tmp_dir']):
-        os.makedirs(args['tmp_dir'])
+    utility.add_tmp_dir(args)
     print("\n## Searching database with BLASTN")
     for target in ['hg38', 'phix']:
         db = '%s/known-contam/%s/%s' % (args['db'], target, target)
@@ -96,7 +94,7 @@ def main():
         for r in utility.parse_blast(out):
             flagged.add(r['qname'])
     flagged = list(flagged)
-    out = '%s/flagged_contigs' % args['tmp_dir']
+    out = f"{args['tmp_dir']}/flagged_contigs"
     print(f"   {len(flagged)} flagged contigs: {out}")
     with open(out, 'w') as f:
         for contig in flagged:

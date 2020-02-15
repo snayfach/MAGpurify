@@ -9,7 +9,7 @@ from . import utility
 
 def fetch_args():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         usage=argparse.SUPPRESS,
         description="MAGpurify: conspecific module: identify contigs that fail to align to closely related genomes",
     )
@@ -24,13 +24,11 @@ def fetch_args():
         '--threads',
         type=int,
         default=1,
-        metavar='INT',
         help="""Number of CPUs to use (default=1)""",
     )
     parser.add_argument(
         '--mash-sketch',
         type=str,
-        metavar='PATH',
         required=True,
         help="""Path to Mash sketch of reference genomes""",
     )
@@ -38,48 +36,41 @@ def fetch_args():
         '--mash-dist',
         type=float,
         default=0.05,
-        metavar='FLOAT',
         help="Mash distance to reference genomes (default=0.05)",
     )
     parser.add_argument(
         '--max-genomes',
         type=int,
         default=25,
-        metavar='INT',
         help="Max number of genomes to use (default=25)",
     )
     parser.add_argument(
         '--min-genomes',
         type=int,
         default=1,
-        metavar='INT',
         help="Min number of genomes to use (default=1)",
     )
     parser.add_argument(
         '--contig-aln',
         type=float,
         default=0.50,
-        metavar='FLOAT',
         help="Minimum fraction of contig aligned to reference (default=0.50)",
     )
     parser.add_argument(
         '--contig-pid',
         type=float,
         default=95.0,
-        metavar='FLOAT',
         help="Minimum percent identity of contig aligned to reference (default=95.0)",
     )
     parser.add_argument(
         '--hit-rate',
         type=float,
         default=0.00,
-        metavar='FLOAT',
         help="Hit rate for flagging contigs (default=0.00)",
     )
     parser.add_argument(
         '--exclude',
         default='',
-        metavar='STR',
         help="Comma-separated list of references to exclude",
     )
     args = vars(parser.parse_args())
@@ -230,7 +221,7 @@ def main():
     print("   contig features: %s" % out)
     print("\n## Identifying contigs with no conspecific alignments")
     flagged = flag_contigs(args, contigs)
-    out = '%s/flagged_contigs' % args['tmp_dir']
+    out = f"{args['tmp_dir']}/flagged_contigs"
     with open(out, 'w') as f:
         for contig in flagged_contigs:
             f.write(contig + '\n')
