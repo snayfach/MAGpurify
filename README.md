@@ -101,7 +101,7 @@ clade-markers gc-content known-contam phylo-markers tetra-freq
 Now remove the contamintion from the bin with `clean-bin`:
 
 ```
-$ run_qc.py clean-bin example/test.fna example/output
+$ run_qc.py clean-bin example/test.fna example/output --output-fasta example/test_cleaned.fna
 
 ## Reading genome bin
    genome length: 704 contigs, 4144.3 Kbp
@@ -118,7 +118,7 @@ $ run_qc.py clean-bin example/test.fna example/output
 ## Removing flagged contigs
    removed: 4 contigs, 34.28 Kbp
    remains: 700 contigs, 4110.03 Kbp
-   cleaned bin: example/output/cleaned_bin.fna
+   cleaned bin: example/test_cleaned.fna
 ```
 
 In summary, 2 of the 7 modules predicted at least one contaminant and the cleaned bin was written to `example/output/cleaned_bin.fna`

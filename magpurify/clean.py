@@ -20,6 +20,12 @@ def fetch_args():
         type=str,
         help="""Output directory to store results and intermediate files""",
     )
+    parser.add_argument(
+        "--output-fasta",
+        type=str,
+        required=True,
+        help="""Path to the output FASTA file""",
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -33,7 +39,6 @@ def main():
         bin[id] = seq
     bin_length = round(sum(len(_) for _ in bin.values()) / 1000, 2)
     print(f"   genome length: {len(bin)} contigs, {bin_length} Kbp")
-
     print("\n## Reading flagged contigs")
     flagged_contigs = []
     programs = [
@@ -63,8 +68,7 @@ def main():
     clean_length = round(sum(len(_) for _ in clean.values()) / 1000, 2)
     print(f"   removed: {len(flagged_contigs)} contigs, {flagged_length} Kbp")
     print(f"   remains: {len(clean)} contigs, {clean_length} Kbp")
-    out = f"{args['out']}/cleaned_bin.fna"
-    with open(out, "w") as f:
+    with open(args['output_fasta'], "w") as f:
         for id, seq in clean.items():
             f.write(">" + id + "\n" + seq + "\n")
-    print(f"   cleaned bin: {out}")
+    print(f"   cleaned bin: {args['output_fasta']}")
