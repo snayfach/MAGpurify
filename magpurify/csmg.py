@@ -8,83 +8,83 @@ import os
 import sys
 from . import utility
 
-ranks = ['k', 'p', 'c', 'o', 'f', 'g', 's']
+ranks = ["k", "p", "c", "o", "f", "g", "s"]
 rank_names = {
-    'k': 'kingdom',
-    'p': 'phylum',
-    'c': 'class',
-    'o': 'order',
-    'f': 'family',
-    'g': 'genus',
-    's': 'species',
+    "k": "kingdom",
+    "p": "phylum",
+    "c": "class",
+    "o": "order",
+    "f": "family",
+    "g": "genus",
+    "s": "species",
 }
 
 
 def fetch_args():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         usage=argparse.SUPPRESS,
         description="MAGpurify: clade-markers module: find taxonomic discordant contigs using db of clade-specific marker genes",
     )
-    parser.add_argument('program', help=argparse.SUPPRESS)
-    parser.add_argument('fna', type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("program", help=argparse.SUPPRESS)
+    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
     parser.add_argument(
-        'out',
+        "out",
         type=str,
         help="""Output directory to store results and intermediate files""",
     )
     parser.add_argument(
-        '-t',
-        dest='threads',
+        "-t",
+        dest="threads",
         type=int,
         default=1,
         help="""Number of CPUs to use (default=1)""",
     )
     parser.add_argument(
-        '-d',
-        dest='db',
+        "-d",
+        dest="db",
         type=str,
         help="""Path to reference database
 By default, the MAGPURIFY environmental variable is used""",
     )
     parser.add_argument(
-        '-e',
-        '--exclude_clades',
+        "-e",
+        "--exclude_clades",
         type=str,
         help="""Comma separated list of clades to exclude (ex: s__Variovorax_sp_CF313)""",
     )
     parser.add_argument(
-        '-b',
-        '--min_bin_fract',
+        "-b",
+        "--min_bin_fract",
         type=float,
         default=0.6,
         help="""Min fraction of bin length supported by contigs that agree with consensus taxonomy (default=0.6)""",
     )
     parser.add_argument(
-        '-c',
-        '--min_contig_fract',
+        "-c",
+        "--min_contig_fract",
         type=float,
         default=0.75,
         help="""Min fraction of classified contig length that agree with consensus taxonomy (default=0.75)""",
     )
     parser.add_argument(
-        '-g',
-        '--min_gene_fract',
+        "-g",
+        "--min_gene_fract",
         type=float,
         default=0.0,
         help="""Min fraction of classified genes that agree with consensus taxonomy (default=0.0)""",
     )
     parser.add_argument(
-        '-m',
-        '--min_genes',
+        "-m",
+        "--min_genes",
         type=float,
         default=None,
         help="""Min number of genes that agree with consensus taxonomy (default=rank-specific-cutoffs)""",
     )
     parser.add_argument(
-        '-l',
-        '--lowest_rank',
-        choices=['s', 'g', 'f', 'o', 'c', 'p', 'k'],
+        "-l",
+        "--lowest_rank",
+        choices=["s", "g", "f", "o", "c", "p", "k"],
         help="""Lowest rank for bin classification""",
     )
 
@@ -92,18 +92,9 @@ By default, the MAGPURIFY environmental variable is used""",
     return args
 
 
-def add_defaults(args):
-    args['lowest_rank'] = None
-    args['min_genes'] = None
-    args['min_gene_fract'] = 0.0
-    args['min_contig_fract'] = 0.75
-    args['min_bin_fract'] = 0.6
-    args['exclude_clades'] = None
-
-
 def read_ref_taxonomy(db_dir):
     ref_taxonomy = {}
-    inpath = '%s/clade-markers/taxonomy.tsv' % db_dir
+    inpath = f"{db_dir}/clade-markers/taxonomy.tsv"
     for line in open(inpath):
         ref_id, taxonomy = line.rstrip().split()
         ref_taxonomy[ref_id] = taxonomy
@@ -112,7 +103,7 @@ def read_ref_taxonomy(db_dir):
 
 def flag_contigs(contigs, bin):
     for bin_taxon in bin.taxonomy:
-        bin_rank = bin_taxon.split('__')[0]
+        bin_rank = bin_taxon.split("__")[0]
         for contig in contigs.values():
             contig_taxa = [
                 gene.taxa[bin_rank] for gene in contig.genes if gene.taxa[bin_rank]
@@ -177,21 +168,17 @@ class Bin:
         min_genes,
         lowest_rank,
     ):
-
         for rank in ranks:
-
             count_genes = collections.defaultdict(int)
             for contig in contigs.values():
                 for gene in contig.genes:
                     if gene.taxa[rank]:
                         count_genes[gene.taxa[rank]] += 1
-
             count_length = collections.defaultdict(int)
             for contig in contigs.values():
                 contig_taxon = contig.cons_taxa[rank]
                 if contig_taxon is not None:
                     count_length[contig_taxon] += contig.length
-
             if sum(count_length.values()) > 0:
                 cons_taxon = sorted(
                     count_length.items(), key=operator.itemgetter(1), reverse=True
@@ -204,11 +191,10 @@ class Bin:
                     c.length for c in contigs.values()
                 )
             else:
-                cons_taxon = 'NA'
+                cons_taxon = "NA"
                 gene_fract = 0.0
                 contig_fract = 0.0
                 bin_fract = 0.0
-
             if bin_fract < min_bin_fract:
                 continue
             elif contig_fract < min_contig_fract:
@@ -224,7 +210,6 @@ class Bin:
                 self.bin_fract = bin_fract
                 self.tagged_genes = sum(count_genes.values())
                 self.tagged_length = sum(count_length.values())
-
             if lowest_rank and rank == lowest_rank:
                 break
 
@@ -235,77 +220,77 @@ def main():
     utility.check_input(args)
     utility.check_database(args)
     print("\n## Reading database info")
-    ref_taxonomy = read_ref_taxonomy(args['db'])
+    ref_taxonomy = read_ref_taxonomy(args["db"])
     taxon_to_taxonomy = {}
     for taxonomy in set(ref_taxonomy.values()):
-        for taxon in taxonomy.split('|'):
+        for taxon in taxonomy.split("|"):
             taxon_to_taxonomy[taxon] = taxonomy
-    min_pid = {'k': 57, 'p': 77, 'c': 82, 'o': 86, 'f': 87, 'g': 91, 's': 96}
-    if args['min_genes'] is not None:
-        args['min_genes'] = dict([(r, args['min_genes']) for r in ranks])
+    min_pid = {"k": 57, "p": 77, "c": 82, "o": 86, "f": 87, "g": 91, "s": 96}
+    if args["min_genes"] is not None:
+        args["min_genes"] = dict([(r, args["min_genes"]) for r in ranks])
     else:
-        args['min_genes'] = {
-            'k': 237,
-            'p': 44,
-            'c': 30,
-            'o': 24,
-            'f': 22,
-            'g': 20,
-            's': 19,
+        args["min_genes"] = {
+            "k": 237,
+            "p": 44,
+            "c": 30,
+            "o": 24,
+            "f": 22,
+            "g": 20,
+            "s": 19,
         }
     print("\n## Calling genes with Prodigal")
-    utility.run_prodigal(args['fna'], args['tmp_dir'])
-    print("   all genes: %s/genes.[ffn|faa]" % args['tmp_dir'])
+    utility.run_prodigal(args["fna"], args["tmp_dir"])
+    print(f"   all genes: {args['tmp_dir']}/genes.[ffn|faa]")
     print(
         "\n## Performing pairwise alignment of genes against MetaPhlan2 db of clade-specific genes"
     )
-    utility.run_lastal(args['db'], args['tmp_dir'], args['threads'])
-    print("   alignments: %s/genes.m8" % args['tmp_dir'])
+    utility.run_lastal(args["db"], args["tmp_dir"], args["threads"])
+    print(f"   alignments: {args['tmp_dir']}/genes.m8")
 
     print("\n## Finding top hits to db")
     genes = {}
-    for aln in utility.parse_last(args['tmp_dir'] + '/genes.m8'):
+    for aln in utility.parse_last(args["tmp_dir"] + "/genes.m8"):
         # clade exclusion
-        ref_taxa = ref_taxonomy[aln['tid']].split('|')
-        if args['exclude_clades'] and any(
-            [taxon in ref_taxa for taxon in args['exclude_clades'].split(',')]
+        ref_taxa = ref_taxonomy[aln["tid"]].split("|")
+        if args["exclude_clades"] and any(
+            [taxon in ref_taxa for taxon in args["exclude_clades"].split(",")]
         ):
             continue
         # initialize gene
-        if aln['qid'] not in genes:
-            genes[aln['qid']] = Gene()
-            genes[aln['qid']].id = aln['qid']
-            genes[aln['qid']].contig_id = aln['qid'].rsplit('_', 1)[0]
+        if aln["qid"] not in genes:
+            genes[aln["qid"]] = Gene()
+            genes[aln["qid"]].id = aln["qid"]
+            genes[aln["qid"]].contig_id = aln["qid"].rsplit("_", 1)[0]
 
         # get top alignments
-        if genes[aln['qid']].aln is None:
-            genes[aln['qid']].aln = aln
-            genes[aln['qid']].ref_taxa = ref_taxa
-        elif float(aln['score']) > float(genes[aln['qid']].aln['score']):
-            genes[aln['qid']].ref_taxa = ref_taxa
+        if genes[aln["qid"]].aln is None:
+            genes[aln["qid"]].aln = aln
+            genes[aln["qid"]].ref_taxa = ref_taxa
+        elif float(aln["score"]) > float(genes[aln["qid"]].aln["score"]):
+            genes[aln["qid"]].ref_taxa = ref_taxa
     print("   %s genes with a database hit" % len(genes))
     print("\n## Classifying genes at each taxonomic rank")
     counts = {}
     for gene in genes.values():
         for ref_taxon in gene.ref_taxa:
-            rank = ref_taxon.split('__')[0]
+            rank = ref_taxon.split("__")[0]
             if rank not in counts:
                 counts[rank] = 0
-            if rank == 't':
+            if rank == "t":
                 continue
-            elif float(gene.aln['pid']) < min_pid[rank]:
+            elif float(gene.aln["pid"]) < min_pid[rank]:
                 continue
-            elif gene.aln['qcov'] < 0.4:
+            elif gene.aln["qcov"] < 0.4:
                 continue
-            elif gene.aln['tcov'] < 0.4:
+            elif gene.aln["tcov"] < 0.4:
                 continue
             gene.taxa[rank] = ref_taxon
             counts[rank] += 1
     for rank in ranks:
-        print("   %s: %s classified genes" % (rank_names[rank], counts[rank]))
+        print(f"   {rank_names[rank]}: {counts[rank]} classified genes")
     print("\n## Taxonomically classifying contigs")
     contigs = {}
-    for id, seq in utility.parse_fasta(args['fna']):
+    for id, seq in utility.parse_fasta(args["fna"]):
         contigs[id] = Contig()
         contigs[id].id = id
         contigs[id].length = len(seq)
@@ -325,25 +310,25 @@ def main():
                 counts[rank] += 1
     print("   total contigs: %s" % len(contigs))
     for rank in ranks:
-        print("   %s: %s classified contigs" % (rank_names[rank], counts[rank]))
+        print(f"   {rank_names[rank]}: {counts[rank]} classified contigs")
 
     print("\n## Taxonomically classifying genome")
     bin = Bin()
     bin.classify(
         contigs,
-        args['min_bin_fract'],
-        args['min_contig_fract'],
-        args['min_gene_fract'],
-        args['min_genes'],
-        args['lowest_rank'],
+        args["min_bin_fract"],
+        args["min_contig_fract"],
+        args["min_gene_fract"],
+        args["min_genes"],
+        args["lowest_rank"],
     )
-    print("   consensus taxon: %s" % bin.cons_taxon)
+    print(f"   consensus taxon: {bin.cons_taxon}")
     print("\n## Identifying taxonomically discordant contigs")
     if bin.cons_taxon is not None:
         bin.rank_index = (
-            taxon_to_taxonomy[bin.cons_taxon].split('|').index(bin.cons_taxon)
+            taxon_to_taxonomy[bin.cons_taxon].split("|").index(bin.cons_taxon)
         )
-        bin.taxonomy = taxon_to_taxonomy[bin.cons_taxon].split('|')[
+        bin.taxonomy = taxon_to_taxonomy[bin.cons_taxon].split("|")[
             0 : bin.rank_index + 1
         ]
         flag_contigs(contigs, bin)
@@ -351,8 +336,9 @@ def main():
     for contig in contigs.values():
         if contig.flagged:
             flagged.append(contig.id)
-    out = '%s/flagged_contigs' % args['tmp_dir']
+    out = f"{args['tmp_dir']}/flagged_contigs"
     print(f"   {len(flagged)} flagged contigs: {out}")
-    with open(out, 'w') as f:
+    with open(out, "w") as f:
         for contig in flagged:
-            f.write(contig + '\n')
+            f.write(contig + "\n")
+
