@@ -68,7 +68,7 @@ $ run_qc.py <module> <input mag> <output directory>
 After the desired modules have been executed, the flagged contigs are removed:
 
 ```
-$ run_qc.py clean-bin <input mag> <output directory>
+$ run_qc.py clean-bin <input mag> <output directory> --output-fasta <output mag>
 ```
 
 It's as simple as that!
