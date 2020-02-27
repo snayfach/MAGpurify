@@ -4,7 +4,7 @@ import argparse
 import os
 import sys
 from operator import itemgetter
-from . import utility
+from magpurify.modules import utility
 
 
 def fetch_args():
@@ -14,62 +14,64 @@ def fetch_args():
         description="MAGpurify: conspecific module: identify contigs that fail to align to closely related genomes",
     )
     parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
-        help="""Output directory to store results and intermediate files""",
+        help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "--threads", type=int, default=1, help="""Number of CPUs to use (default=1)""",
+        "--threads", type=int, default=1, help="Number of CPUs to use",
     )
     parser.add_argument(
         "--mash-sketch",
         type=str,
         required=True,
-        help="""Path to Mash sketch of reference genomes""",
+        help="Path to Mash sketch of reference genomes",
     )
     parser.add_argument(
         "--mash-dist",
         type=float,
         default=0.05,
-        help="Mash distance to reference genomes (default=0.05)",
+        help="Mash distance to reference genomes",
     )
     parser.add_argument(
         "--max-genomes",
         type=int,
         default=25,
-        help="Max number of genomes to use (default=25)",
+        help="Max number of genomes to use",
     )
     parser.add_argument(
         "--min-genomes",
         type=int,
         default=1,
-        help="Min number of genomes to use (default=1)",
+        help="Min number of genomes to use",
     )
     parser.add_argument(
         "--contig-aln",
         type=float,
         default=0.50,
-        help="Minimum fraction of contig aligned to reference (default=0.50)",
+        help="Minimum fraction of contig aligned to reference",
     )
     parser.add_argument(
         "--contig-pid",
         type=float,
         default=95.0,
-        help="Minimum percent identity of contig aligned to reference (default=95.0)",
+        help="Minimum percent identity of contig aligned to reference",
     )
     parser.add_argument(
         "--hit-rate",
         type=float,
         default=0.00,
-        help="Hit rate for flagging contigs (default=0.00)",
+        help="Hit rate for flagging contigs",
     )
     parser.add_argument(
-        "--exclude", default="", help="Comma-separated list of references to exclude",
+        "--exclude",
+        nargs="+",
+        default="",
+        help="List of references to exclude",
     )
     args = vars(parser.parse_args())
-    args["exclude"] = args["exclude"].split(",")
     return args
 
 

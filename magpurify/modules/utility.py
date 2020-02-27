@@ -26,7 +26,7 @@ def check_dependencies(programs):
 
 
 def exists_on_env_path(program):
-    """ Check whether program exists in PATH and is executable """
+    " Check whether program exists in PATH and is executable"
     for dir in os.environ["PATH"].split(os.pathsep):
         fpath = dir + "/" + program
         if os.path.exists(fpath) and os.access(fpath, os.X_OK):
@@ -56,7 +56,6 @@ def reverse_complement(sequence):
 
 
 def run_process(command):
-    """ Capture stdout, stderr. Check unix exit code and exit if non-zero """
     process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
     out, err = process.communicate()
     if process.returncode != 0:

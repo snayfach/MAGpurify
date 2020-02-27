@@ -4,7 +4,7 @@ import argparse
 import os
 import sys
 from operator import itemgetter
-from . import utility
+from magpurify.modules import utility
 
 
 def fetch_args():
@@ -14,17 +14,17 @@ def fetch_args():
         description="MAGpurify: clean module: remove flagged contigs from input genome",
     )
     parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
-        help="""Output directory to store results and intermediate files""",
+        help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
         "--output-fasta",
         type=str,
         required=True,
-        help="""Path to the output FASTA file""",
+        help="Path to the output FASTA file",
     )
     args = vars(parser.parse_args())
     return args

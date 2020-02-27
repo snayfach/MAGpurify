@@ -8,7 +8,7 @@ import Bio.Seq
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
-from . import utility
+from magpurify.modules import utility
 
 
 def fetch_args():
@@ -18,21 +18,21 @@ def fetch_args():
         description="MAGpurify: tetra-freq module: find contigs with outlier tetranucleotide frequency",
     )
     parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
-        help="""Output directory to store results and intermediate files""",
+        help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
         "-t",
         dest="threads",
         type=int,
         default=1,
-        help="""Number of CPUs to use (default=1)""",
+        help="Number of CPUs to use",
     )
     parser.add_argument(
-        "--cutoff", type=float, default=0.06, help="""Cutoff (default=0.06)"""
+        "--cutoff", type=float, default=0.06, help="Cutoff"
     )
     args = vars(parser.parse_args())
     return args

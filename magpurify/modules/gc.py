@@ -5,7 +5,7 @@ import os
 import sys
 import numpy as np
 from Bio import SeqUtils
-from . import utility
+from magpurify.modules import utility
 
 
 def fetch_args():
@@ -15,21 +15,21 @@ def fetch_args():
         description="MAGpurify: gc-content module: find contigs with outlier gc content",
     )
     parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
-        help="""Output directory to store results and intermediate files""",
+        help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
         "-t",
         dest="threads",
         type=int,
         default=1,
-        help="""Number of CPUs to use (default=1)""",
+        help="Number of CPUs to use",
     )
     parser.add_argument(
-        "--cutoff", type=float, default=15.75, help="""Cutoff (default=15.75)"""
+        "--cutoff", type=float, default=15.75, help="Cutoff"
     )
     args = vars(parser.parse_args())
     return args

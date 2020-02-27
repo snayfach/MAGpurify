@@ -3,6 +3,7 @@
 import argparse
 import sys
 
+from magpurify import uscmg, csmg, conspecific, tetra, gc, coverage, contam, clean
 
 def get_program():
     if len(sys.argv) == 1 or sys.argv[1] in ["-h", "--help"]:
@@ -37,46 +38,30 @@ def get_program():
         return sys.argv[1]
 
 
-if __name__ == "__main__":
+def cli():
 
     program = get_program()
 
     if program == "phylo-markers":
-        from magpurify import uscmg
-
         uscmg.main()
 
-    if program == "clade-markers":
-        from magpurify import csmg
-
+    elif program == "clade-markers":
         csmg.main()
 
-    if program == "conspecific":
-        from magpurify import conspecific
-
+    elif program == "conspecific":
         conspecific.main()
 
-    if program == "tetra-freq":
-        from magpurify import tetra
-
+    elif program == "tetra-freq":
         tetra.main()
 
-    if program == "gc-content":
-        from magpurify import gc
-
+    elif program == "gc-content":
         gc.main()
 
-    if program == "coverage":
-        from magpurify import coverage
-
+    elif program == "coverage":
         coverage.main()
 
-    if program == "known-contam":
-        from magpurify import contam
-
+    elif program == "known-contam":
         contam.main()
 
-    if program == "clean-bin":
-        from magpurify import clean
-
+    elif program == "clean-bin":
         clean.main()

@@ -3,7 +3,7 @@
 import argparse
 import sys
 import pandas as pd
-from . import utility
+from magpurify.modules import utility
 
 
 def fetch_args():
@@ -13,24 +13,24 @@ def fetch_args():
         description="MAGpurify: coverage module: find contigs with outlier coverage profile",
     )
     parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
-        help="""Output directory to store results and intermediate files""",
+        help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
         "--bams",
         nargs="+",
         type=str,
         required=True,
-        help="""Paths to input sorted BAM files""",
+        help="Paths to input sorted BAM files",
     )
     parser.add_argument(
         "--max-deviation",
         type=float,
         default=5.0,
-        help="""Contigs with coverage greater than [max-deviation * mean coverage] or less than [(1/max-deviation) * mean coverage] will be flagged as outliers""",
+        help="Contigs with coverage greater than [max-deviation * mean coverage] or less than [(1/max-deviation) * mean coverage] will be flagged as outliers",
     )
     args = vars(parser.parse_args())
     return args

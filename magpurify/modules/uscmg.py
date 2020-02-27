@@ -6,7 +6,7 @@ import csv
 import os
 import sys
 from collections import Counter
-from . import utility
+from magpurify.modules import utility
 
 
 def parse_args():
@@ -16,79 +16,73 @@ def parse_args():
         description="MAGpurify: phylo-markers module: find taxonomic discordant contigs using db of phylogenetic marker genes",
     )
     parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
-        "out",
-        type=str,
-        help="""Output directory to store results and intermediate files""",
+        "out", type=str, help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "-t",
-        dest="threads",
-        type=int,
-        default=1,
-        help="""Number of CPUs to use (default=1)""",
+        "-t", dest="threads", type=int, default=1, help="Number of CPUs to use",
     )
     parser.add_argument(
         "-d",
         dest="db",
         type=str,
-        help="""Path to reference database
-By default, the MAGPURIFYDB environmental variable is used""",
+        help="Path to reference database. By default, the MAGPURIFYDB environmental variable is used",
     )
     parser.add_argument(
         "-c",
         dest="continue",
         action="store_true",
         default=False,
-        help="""Go straight to quality estimation and skip all previous steps""",
+        help="Go straight to quality estimation and skip all previous steps",
     )
     parser.add_argument(
         "--max_target_seqs",
         type=int,
         default=1,
-        help="""Maximum number of targets reported in BLAST table (default=1)""",
+        help="Maximum number of targets reported in BLAST table",
     )
     parser.add_argument(
         "--cutoff_type",
         choices=["strict", "sensitive", "none"],
         default="strict",
-        help="""Use strict or sensitive %%ID cutoff for taxonomically annotating genes (default=strict)""",
+        help="Use strict or sensitive %%ID cutoff for taxonomically annotating genes",
     )
     parser.add_argument(
         "--seq_type",
         choices=["dna", "protein", "both", "either"],
         default="protein",
-        help="""Choose to search genes versus DNA or protein database (default=protein)""",
+        help="Choose to search genes versus DNA or protein database",
     )
     parser.add_argument(
         "--hit_type",
         choices=["all_hits", "top_hit"],
         default="top_hit",
-        help="""Transfer taxonomy of all hits or top hit per gene (default=top_hit)""",
+        help="Transfer taxonomy of all hits or top hit per gene",
     )
     parser.add_argument(
         "--exclude_clades",
         type=str,
-        help="""Comma separated list of clades to exclude (ex: s__1300164.4)""",
+        nargs="+",
+        help="List of clades to exclude (ex: s__1300164.4)",
     )
     parser.add_argument(
         "--bin_fract",
         type=float,
         default=0.7,
-        help="""Min fraction of genes in bin that agree with consensus taxonomy for bin annotation (default=0.7)""",
+        help="Min fraction of genes in bin that agree with consensus taxonomy for bin annotation",
     )
     parser.add_argument(
         "--contig_fract",
         type=float,
         default=1.0,
-        help="""Min fraction of genes in that disagree with bin taxonomy for filtering (default=1.0)""",
+        help="Min fraction of genes in that disagree with bin taxonomy for filtering",
     )
     parser.add_argument(
         "--allow_noclass",
         action="store_true",
         default=False,
-        help="""Allow a bin to be unclassfied and flag any classified contigs (default=False)""",
+        help="Allow a bin to be unclassfied and flag any classified contigs",
     )
     args = vars(parser.parse_args())
     return args
@@ -164,7 +158,7 @@ class Bin:
 
             # loop over annotations for each gene
             for index, annotation in enumerate(gene.annotations):
-                is_match = any([c in annotation.taxon for c in clades.split(",")])
+                is_match = any([c in annotation.taxon for c in clades])
                 if is_match:
                     exclude_indexes.append(index)
 
@@ -179,10 +173,6 @@ class Bin:
                 gene.annotations = [a for a in gene.annotations if a.score == max_score]
 
     def classify_taxonomy(self, allow_noclass=False, min_fraction=0.5):
-        """
-		determine taxon and rank of bin based on lowest rank
-		where at least <min_fraction> of genes match the consensus annotation
-		"""
         ranks = ["s", "g", "f", "o", "c", "p"]
         for rank_index, rank in enumerate(ranks):
 
@@ -470,4 +460,3 @@ def main():
     with open(out, "w") as f:
         for contig in flagged:
             f.write(contig + "\n")
-

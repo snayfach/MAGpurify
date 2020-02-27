@@ -3,7 +3,7 @@
 import argparse
 import os
 import sys
-from . import utility
+from magpurify.modules import utility
 
 
 def fetch_args():
@@ -13,40 +13,39 @@ def fetch_args():
         description="MAGpurify: known-contam module: find contigs that match a database of known contaminants",
     )
     parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
-        help="""Output directory to store results and intermediate files""",
+        help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
         "-t",
         dest="threads",
         type=int,
         default=1,
-        help="""Number of CPUs to use (default=1)""",
+        help="Number of CPUs to use",
     )
     parser.add_argument(
         "-d",
         dest="db",
         type=str,
-        help="""Path to reference database
-By default, the IMAGEN_DB environmental variable is used""",
+        help="Path to reference database. By default, the IMAGEN_DB environmental variable is used",
     )
     parser.add_argument(
         "--pid",
         type=float,
         default=98,
-        help="""Minimum %% identity to reference (default=98)""",
+        help="Minimum %% identity to reference",
     )
     parser.add_argument(
-        "--evalue", type=float, default=1e-5, help="""Maximum evalue (default=1e-5)"""
+        "--evalue", type=float, default=1e-5, help="Maximum evalue"
     )
     parser.add_argument(
         "--qcov",
         type=float,
         default=25,
-        help="""Minimum percent query coverage (default=25)""",
+        help="Minimum percent query coverage",
     )
     args = vars(parser.parse_args())
     return args

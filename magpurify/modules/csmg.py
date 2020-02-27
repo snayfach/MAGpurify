@@ -6,7 +6,7 @@ import copy
 import operator
 import os
 import sys
-from . import utility
+from magpurify.modules import utility
 
 ranks = ["k", "p", "c", "o", "f", "g", "s"]
 rank_names = {
@@ -27,65 +27,65 @@ def fetch_args():
         description="MAGpurify: clade-markers module: find taxonomic discordant contigs using db of clade-specific marker genes",
     )
     parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="""Path to input genome in FASTA format""")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
-        help="""Output directory to store results and intermediate files""",
+        help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
         "-t",
         dest="threads",
         type=int,
         default=1,
-        help="""Number of CPUs to use (default=1)""",
+        help="Number of CPUs to use",
     )
     parser.add_argument(
         "-d",
         dest="db",
         type=str,
-        help="""Path to reference database
-By default, the MAGPURIFY environmental variable is used""",
+        help="Path to reference database. By default, the MAGPURIFY environmental variable is used",
     )
     parser.add_argument(
         "-e",
         "--exclude_clades",
+        nargs="+",
         type=str,
-        help="""Comma separated list of clades to exclude (ex: s__Variovorax_sp_CF313)""",
+        help="List of clades to exclude (ex: s__Variovorax_sp_CF313)",
     )
     parser.add_argument(
         "-b",
         "--min_bin_fract",
         type=float,
         default=0.6,
-        help="""Min fraction of bin length supported by contigs that agree with consensus taxonomy (default=0.6)""",
+        help="Min fraction of bin length supported by contigs that agree with consensus taxonomy",
     )
     parser.add_argument(
         "-c",
         "--min_contig_fract",
         type=float,
         default=0.75,
-        help="""Min fraction of classified contig length that agree with consensus taxonomy (default=0.75)""",
+        help="Min fraction of classified contig length that agree with consensus taxonomy",
     )
     parser.add_argument(
         "-g",
         "--min_gene_fract",
         type=float,
         default=0.0,
-        help="""Min fraction of classified genes that agree with consensus taxonomy (default=0.0)""",
+        help="Min fraction of classified genes that agree with consensus taxonomy",
     )
     parser.add_argument(
         "-m",
         "--min_genes",
         type=float,
         default=None,
-        help="""Min number of genes that agree with consensus taxonomy (default=rank-specific-cutoffs)""",
+        help="Min number of genes that agree with consensus taxonomy (default=rank-specific-cutoffs)",
     )
     parser.add_argument(
         "-l",
         "--lowest_rank",
         choices=["s", "g", "f", "o", "c", "p", "k"],
-        help="""Lowest rank for bin classification""",
+        help="Lowest rank for bin classification",
     )
 
     args = vars(parser.parse_args())
@@ -253,7 +253,7 @@ def main():
         # clade exclusion
         ref_taxa = ref_taxonomy[aln["tid"]].split("|")
         if args["exclude_clades"] and any(
-            [taxon in ref_taxa for taxon in args["exclude_clades"].split(",")]
+            [taxon in ref_taxa for taxon in args["exclude_clades"]]
         ):
             continue
         # initialize gene
