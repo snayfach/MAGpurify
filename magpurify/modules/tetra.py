@@ -1,4 +1,20 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#   This file is part of the magpurify package, available at:
+#   https://github.com/snayfach/MAGpurify
+#
+#   Magpurify is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import itertools
@@ -8,41 +24,32 @@ import Bio.Seq
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
-from magpurify.modules import utility
+from magpurify import utilities
 
 
-def fetch_args():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        usage=argparse.SUPPRESS,
-        description="MAGpurify: tetra-freq module: find contigs with outlier tetranucleotide frequency",
+def fetch_args(parser):
+    parser.set_defaults(func=main)
+    parser.set_defaults(program="tetra-freq")
+    parser.add_argument(
+        "fna",
+        type=str,
+        help="Path to input genome in FASTA format"
     )
-    parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
         help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "-t",
-        dest="threads",
-        type=int,
-        default=1,
-        help="Number of CPUs to use",
-    )
-    parser.add_argument(
         "--cutoff", type=float, default=0.06, help="Cutoff"
     )
-    args = vars(parser.parse_args())
-    return args
 
 
 def init_kmers():
     tetra = {}
     for i in itertools.product("ACGT", repeat=4):
         kmer_fwd = "".join(i)
-        kmer_rev = utility.reverse_complement(kmer_fwd)
+        kmer_rev = utilities.reverse_complement(kmer_fwd)
         if kmer_fwd in tetra:
             continue
         elif kmer_rev in tetra:
@@ -57,17 +64,15 @@ class Contig:
         pass
 
 
-def main():
-
-    args = fetch_args()
-    utility.add_tmp_dir(args)
-    utility.check_input(args)
-    utility.check_dependencies(["blastn"])
+def main(args):
+    utilities.add_tmp_dir(args)
+    utilities.check_input(args)
+    utilities.check_dependencies(["blastn"])
 
     print("\n## Counting tetranucleotides")
     # init data
     contigs = {}
-    for id, seq in utility.parse_fasta(args["fna"]):
+    for id, seq in utilities.parse_fasta(args["fna"]):
         contig = Contig()
         contig.id = id
         contig.seq = str(seq)
@@ -81,7 +86,7 @@ def main():
             if kmer_fwd in contig.kmers:
                 contig.kmers[kmer_fwd] += 1
             else:
-                kmer_rev = utility.reverse_complement(kmer_fwd)
+                kmer_rev = utilities.reverse_complement(kmer_fwd)
                 contig.kmers[kmer_rev] += 1
 
     print("\n## Normalizing counts")

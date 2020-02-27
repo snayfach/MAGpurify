@@ -14,16 +14,14 @@ Clone the repo from github:
 Install required python libraries:
 `pip install --user pandas numpy sklearn biopython`
 
-Install 3rd party programs:
+Install 3rd party programs and make sure they are located on your PATH:
 
-* [BLAST (v2.7.1)](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
-* [Prodigal (v2.6.3)](https://github.com/hyattpd/Prodigal)
-* [HMMER (v3.1b2)](http://hmmer.org/download.html)
-* [LAST (v828)](http://last.cbrc.jp)
-* [Mash (v2.0)](https://github.com/marbl/Mash/releases)
-* [CoverM (v0.3.2)](https://github.com/wwood/CoverM/releases)
-* Make sure these programs are located on your PATH
-* Tested versions indicated, but other versions might also work
+* [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+* [Prodigal](https://github.com/hyattpd/Prodigal)
+* [HMMER](http://hmmer.org/download.html)
+* [LAST](http://last.cbrc.jp)
+* [Mash](https://github.com/marbl/Mash/releases)
+* [CoverM](https://github.com/wwood/CoverM/releases)
 
 Download the reference database: [MAGpurify-db-v1.0.tar.bz2](http://bit.ly/MAGpurify-db)
 
@@ -40,35 +38,46 @@ Update your environment:
 The program is broken down into several modules:
 
 ```
-$ run_qc.py -h
+$ magpurify
 
-MAGpurify: Identify and remove incorrectly binned contigs from metagenome-assembled genomes
+usage: magpurify [-h] [--version]
+                 {phylo-markers,clade-markers,conspecific,tetra-freq,gc-content,coverage,known-contam,clean-bin}
+                 ...
 
-Usage: run_qc.py <command> [options]
+Identify and remove incorrectly binned contigs from metagenome-assembled
+genomes.
 
-Commands:
-    phylo-markers: find taxonomic discordant contigs using db of phylogenetic marker genes
-    clade-markers: find taxonomic discordant contigs using db of clade-specific marker genes
-      conspecific: find contigs that fail to align to closely related genomes
-       tetra-freq: find contigs with outlier tetranucleotide frequency
-       gc-content: find contigs with outlier gc content
-         coverage: find contigs with outlier coverage profile
-     known-contam: find contigs that match a database of known contaminants
-        clean-bin: remove identified contigs from bin
+positional arguments:
+  {phylo-markers,clade-markers,conspecific,tetra-freq,gc-content,coverage,known-contam,clean-bin}
+    phylo-markers       find taxonomic discordant contigs using a database of
+                        phylogenetic marker genes.
+    clade-markers       find taxonomic discordant contigs using a database of
+                        clade-specific marker genes.
+    conspecific         find contigs that fail to align to closely related
+                        genomes.
+    tetra-freq          find contigs with outlier tetranucleotide frequency.
+    gc-content          find contigs with outlier GC content.
+    coverage            find contigs with outlier coverage profile.
+    known-contam        find contigs that match a database of known
+                        contaminants.
+    clean-bin           remove putative contaminant contigs from bin.
 
-Note: use run_qc.py <command> -h to view usage for a specific command
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+
 ```
 
-MAGpurify modules are executed sequentially using the following command structure:
+MAGpurify modules are executed sequentially, usually using the following command structure:
 
 ```
-$ run_qc.py <module> <input mag> <output directory>
+$ magpurify <module> <input mag> <output directory>
 ```
 
 After the desired modules have been executed, the flagged contigs are removed:
 
 ```
-$ run_qc.py clean-bin <input mag> <output directory> --output-fasta <output mag>
+$ magpurify clean-bin <input mag> <output directory> <output mag>
 ```
 
 It's as simple as that!
@@ -84,11 +93,11 @@ The next few lines will show you how to run the software using a single MAG incl
 First, run the individual modules to predict contamination in the example `example/test.fna` file and store the results in `example/output`:
 
 ```
-$ run_qc.py phylo-markers example/test.fna example/output
-$ run_qc.py clade-markers example/test.fna example/output
-$ run_qc.py tetra-freq example/test.fna example/output
-$ run_qc.py gc-content example/test.fna example/output
-$ run_qc.py known-contam example/test.fna example/output
+$ magpurify phylo-markers example/test.fna example/output
+$ magpurify clade-markers example/test.fna example/output
+$ magpurify tetra-freq example/test.fna example/output
+$ magpurify gc-content example/test.fna example/output
+$ magpurify known-contam example/test.fna example/output
 ```
 
 The output of each module is stored in the output directory:
@@ -101,7 +110,7 @@ clade-markers gc-content known-contam phylo-markers tetra-freq
 Now remove the contamintion from the bin with `clean-bin`:
 
 ```
-$ run_qc.py clean-bin example/test.fna example/output --output-fasta example/test_cleaned.fna
+$ magpurify clean-bin example/test.fna example/output example/test_cleaned.fna
 
 ## Reading genome bin
    genome length: 704 contigs, 4144.3 Kbp
@@ -136,7 +145,7 @@ This command will create a Mash sketch of the genomes listed in `example/ref_gen
 Now you can run the conspecific module:
 
 ```
-$ run_qc.py conspecific example/test.fna example/output --mash-sketch example/ref_genomes.msh
+$ magpurify conspecific example/test.fna example/output example/ref_genomes.msh
 
 ## Finding conspecific genomes in database
    25 genomes within 0.05 mash-dist
@@ -161,7 +170,7 @@ So, the conspecific module alone identified 238 putative contaminants! This illu
 To run the `coverage` module, you need to input a sorted BAM file containing reads mapped to the MAG (or the original metagenome, as long as the contig name is unchanged). You can also input multiple BAM files and MAGpurify will pick the one with the greatest average contig coverage.
 
 ```
-$ run_qc.py conspecific example/test.fna example/output --bams ./BAM/sample_1.bam ./BAM/sample_2.bam ./BAM/sample_3.bam
+$ magpurify conspecific example/test.fna example/output ./BAM/sample_1.bam ./BAM/sample_2.bam ./BAM/sample_3.bam
 
 ## Computing contig coverage
 

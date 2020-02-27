@@ -1,38 +1,45 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#   This file is part of the magpurify package, available at:
+#   https://github.com/snayfach/MAGpurify
+#
+#   Magpurify is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import os
 import sys
 import numpy as np
 from Bio import SeqUtils
-from magpurify.modules import utility
+from magpurify import utilities
 
 
-def fetch_args():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        usage=argparse.SUPPRESS,
-        description="MAGpurify: gc-content module: find contigs with outlier gc content",
+def fetch_args(parser):
+    parser.set_defaults(func=main)
+    parser.set_defaults(program="gc-content")
+    parser.add_argument(
+        "fna",
+        type=str,
+        help="Path to input genome in FASTA format"
     )
-    parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
         help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "-t",
-        dest="threads",
-        type=int,
-        default=1,
-        help="Number of CPUs to use",
-    )
-    parser.add_argument(
         "--cutoff", type=float, default=15.75, help="Cutoff"
     )
-    args = vars(parser.parse_args())
-    return args
 
 
 class Contig:
@@ -40,13 +47,12 @@ class Contig:
         pass
 
 
-def main():
-    args = fetch_args()
-    utility.add_tmp_dir(args)
-    utility.check_input(args)
+def main(args):
+    utilities.add_tmp_dir(args)
+    utilities.check_input(args)
     print("\n## Computing mean contig GC content")
     contigs = {}
-    for id, seq in utility.parse_fasta(args["fna"]):
+    for id, seq in utilities.parse_fasta(args["fna"]):
         contig = Contig()
         contig.id = id
         contig.seq = str(seq)

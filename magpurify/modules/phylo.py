@@ -1,37 +1,55 @@
-#!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
+#   This file is part of the magpurify package, available at:
+#   https://github.com/snayfach/MAGpurify
+#
+#   Magpurify is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import csv
 import os
 import sys
 from collections import Counter
-from magpurify.modules import utility
+from magpurify import utilities
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        usage=argparse.SUPPRESS,
-        description="MAGpurify: phylo-markers module: find taxonomic discordant contigs using db of phylogenetic marker genes",
-    )
-    parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
+def fetch_args(parser):
+    parser.set_defaults(func=main)
+    parser.set_defaults(program="phylo-markers")
     parser.add_argument(
-        "out", type=str, help="Output directory to store results and intermediate files",
+        "fna",
+        type=str,
+        help="Path to input genome in FASTA format"
     )
     parser.add_argument(
-        "-t", dest="threads", type=int, default=1, help="Number of CPUs to use",
+        "out",
+        type=str,
+        help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "-d",
-        dest="db",
+        "--threads",
+        type=int,
+        default=1,
+        help="Number of CPUs to use",
+    )
+    parser.add_argument(
+        "--db",
         type=str,
         help="Path to reference database. By default, the MAGPURIFYDB environmental variable is used",
     )
     parser.add_argument(
-        "-c",
-        dest="continue",
+        "--continue",
         action="store_true",
         default=False,
         help="Go straight to quality estimation and skip all previous steps",
@@ -84,8 +102,6 @@ def parse_args():
         default=False,
         help="Allow a bin to be unclassfied and flag any classified contigs",
     )
-    args = vars(parser.parse_args())
-    return args
 
 
 def extract_homologs(tmp_dir):
@@ -94,7 +110,7 @@ def extract_homologs(tmp_dir):
     if not os.path.isdir(seqs_dir):
         os.makedirs(seqs_dir)
     # fetch best hits from hmmsearch
-    gene_to_aln = utility.fetch_hmm_best_hits(f"{tmp_dir}/phyeco.hmmsearch")
+    gene_to_aln = utilities.fetch_hmm_best_hits(f"{tmp_dir}/phyeco.hmmsearch")
     # open output files
     outfiles = {}
     marker_ids = set([aln["qacc"] for aln in list(gene_to_aln.values())])
@@ -105,7 +121,7 @@ def extract_homologs(tmp_dir):
     # write seqs
     for ext in ["ffn", "faa"]:
         in_path = f"{tmp_dir}/genes.{ext}"
-        for id, seq in utility.parse_fasta(in_path):
+        for id, seq in utilities.parse_fasta(in_path):
             if id in gene_to_aln:
                 marker_id = gene_to_aln[id]["qacc"]
                 seq = seq.rstrip("*")
@@ -132,13 +148,13 @@ def align_homologs(db_dir, tmp_dir, seq_type, threads):
             db_path = f"{db_dir}/phylo-markers/{program}/{marker_id}"
             query_path = f"{tmp_dir}/markers/{marker_id}.{ext}"
             out_path = f"{tmp_dir}/alns/{marker_id}.{ext}.m8"
-            utility.run_blastp(db_path, query_path, out_path, threads)
+            utilities.run_blastp(db_path, query_path, out_path, threads)
         else:
             program = "blastn"
             db_path = f"{db_dir}/phylo-markers/{program}/{marker_id}"
             query_path = f"{tmp_dir}/markers/{marker_id}.{ext}"
             out_path = f"{tmp_dir}/alns/{marker_id}.{ext}.m8"
-            utility.run_blastp(db_path, query_path, out_path, threads)
+            utilities.run_blastp(db_path, query_path, out_path, threads)
 
 
 class Bin:
@@ -325,7 +341,7 @@ def flag_contigs(db_dir, tmp_dir, args):
     bin = Bin()
     bin.genes = {}
     hmm_path = f"{tmp_dir}/phyeco.hmmsearch"
-    for gene_id, aln in list(utility.fetch_hmm_best_hits(hmm_path).items()):
+    for gene_id, aln in list(utilities.fetch_hmm_best_hits(hmm_path).items()):
         if aln["qacc"] not in markers:
             continue
         gene = Gene()
@@ -348,7 +364,7 @@ def flag_contigs(db_dir, tmp_dir, args):
     for seq_type in seq_types:
         for marker_id in markers:
             aln_path = tmp_dir + "/alns/" + marker_id + "." + seq_type + ".m8"
-            for aln in utility.parse_blast(aln_path):
+            for aln in utilities.parse_blast(aln_path):
 
                 # fetch all unique taxonomies for target sequence
                 # a sequence can have multiple taxonomies if it was clustered with another sequence
@@ -409,7 +425,7 @@ def flag_contigs(db_dir, tmp_dir, args):
 
     # flag contigs with discrepant taxonomy
     bin.contigs = {}
-    for id, seq in utility.parse_fasta(args["fna"]):
+    for id, seq in utilities.parse_fasta(args["fna"]):
         bin.contigs[id] = Contig()
         bin.contigs[id].id = id
         bin.contigs[id].length = len(seq)
@@ -431,20 +447,18 @@ def flag_contigs(db_dir, tmp_dir, args):
     return flagged_contigs
 
 
-def main():
-
-    args = parse_args()
-    utility.add_tmp_dir(args)
-    utility.check_input(args)
-    utility.check_dependencies(["prodigal", "hmmsearch", "blastp", "blastn"])
-    utility.check_database(args)
+def main(args):
+    utilities.add_tmp_dir(args)
+    utilities.check_input(args)
+    utilities.check_dependencies(["prodigal", "hmmsearch", "blastp", "blastn"])
+    utilities.check_database(args)
 
     print("\n## Calling genes with Prodigal")
-    utility.run_prodigal(args["fna"], args["tmp_dir"])
+    utilities.run_prodigal(args["fna"], args["tmp_dir"])
     print(f"   all genes: {args['tmp_dir']}/genes.[ffn|faa]")
 
     print("\n## Identifying PhyEco phylogenetic marker genes with HMMER")
-    utility.run_hmmsearch(args["db"], args["tmp_dir"], args["tmp_dir"], args["threads"])
+    utilities.run_hmmsearch(args["db"], args["tmp_dir"], args["tmp_dir"], args["threads"])
     extract_homologs(args["tmp_dir"])
     print(f"   hmm results: {args['tmp_dir']}/phyeco.hmmsearch")
     print(f"   marker genes: {args['tmp_dir']}/markers")

@@ -1,4 +1,20 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#   This file is part of the magpurify package, available at:
+#   https://github.com/snayfach/MAGpurify
+#
+#   Magpurify is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import collections
@@ -6,7 +22,7 @@ import copy
 import operator
 import os
 import sys
-from magpurify.modules import utility
+from magpurify import utilities
 
 ranks = ["k", "p", "c", "o", "f", "g", "s"]
 rank_names = {
@@ -20,76 +36,65 @@ rank_names = {
 }
 
 
-def fetch_args():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        usage=argparse.SUPPRESS,
-        description="MAGpurify: clade-markers module: find taxonomic discordant contigs using db of clade-specific marker genes",
+def fetch_args(parser):
+    parser.set_defaults(func=main)
+    parser.set_defaults(program="clade-markers")
+    parser.add_argument(
+        "fna",
+        type=str,
+        help="Path to input genome in FASTA format"
     )
-    parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
         help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "-t",
-        dest="threads",
+        "--threads",
         type=int,
         default=1,
         help="Number of CPUs to use",
     )
     parser.add_argument(
-        "-d",
-        dest="db",
+        "--db",
         type=str,
         help="Path to reference database. By default, the MAGPURIFY environmental variable is used",
     )
     parser.add_argument(
-        "-e",
         "--exclude_clades",
         nargs="+",
         type=str,
         help="List of clades to exclude (ex: s__Variovorax_sp_CF313)",
     )
     parser.add_argument(
-        "-b",
         "--min_bin_fract",
         type=float,
         default=0.6,
         help="Min fraction of bin length supported by contigs that agree with consensus taxonomy",
     )
     parser.add_argument(
-        "-c",
         "--min_contig_fract",
         type=float,
         default=0.75,
         help="Min fraction of classified contig length that agree with consensus taxonomy",
     )
     parser.add_argument(
-        "-g",
         "--min_gene_fract",
         type=float,
         default=0.0,
         help="Min fraction of classified genes that agree with consensus taxonomy",
     )
     parser.add_argument(
-        "-m",
         "--min_genes",
         type=float,
         default=None,
         help="Min number of genes that agree with consensus taxonomy (default=rank-specific-cutoffs)",
     )
     parser.add_argument(
-        "-l",
         "--lowest_rank",
         choices=["s", "g", "f", "o", "c", "p", "k"],
         help="Lowest rank for bin classification",
     )
-
-    args = vars(parser.parse_args())
-    return args
 
 
 def read_ref_taxonomy(db_dir):
@@ -214,11 +219,10 @@ class Bin:
                 break
 
 
-def main():
-    args = fetch_args()
-    utility.add_tmp_dir(args)
-    utility.check_input(args)
-    utility.check_database(args)
+def main(args):
+    utilities.add_tmp_dir(args)
+    utilities.check_input(args)
+    utilities.check_database(args)
     print("\n## Reading database info")
     ref_taxonomy = read_ref_taxonomy(args["db"])
     taxon_to_taxonomy = {}
@@ -239,17 +243,17 @@ def main():
             "s": 19,
         }
     print("\n## Calling genes with Prodigal")
-    utility.run_prodigal(args["fna"], args["tmp_dir"])
+    utilities.run_prodigal(args["fna"], args["tmp_dir"])
     print(f"   all genes: {args['tmp_dir']}/genes.[ffn|faa]")
     print(
         "\n## Performing pairwise alignment of genes against MetaPhlan2 db of clade-specific genes"
     )
-    utility.run_lastal(args["db"], args["tmp_dir"], args["threads"])
+    utilities.run_lastal(args["db"], args["tmp_dir"], args["threads"])
     print(f"   alignments: {args['tmp_dir']}/genes.m8")
 
     print("\n## Finding top hits to db")
     genes = {}
-    for aln in utility.parse_last(args["tmp_dir"] + "/genes.m8"):
+    for aln in utilities.parse_last(args["tmp_dir"] + "/genes.m8"):
         # clade exclusion
         ref_taxa = ref_taxonomy[aln["tid"]].split("|")
         if args["exclude_clades"] and any(
@@ -290,7 +294,7 @@ def main():
         print(f"   {rank_names[rank]}: {counts[rank]} classified genes")
     print("\n## Taxonomically classifying contigs")
     contigs = {}
-    for id, seq in utility.parse_fasta(args["fna"]):
+    for id, seq in utilities.parse_fasta(args["fna"]):
         contigs[id] = Contig()
         contigs[id].id = id
         contigs[id].length = len(seq)

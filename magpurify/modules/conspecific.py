@@ -1,33 +1,51 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#   This file is part of the magpurify package, available at:
+#   https://github.com/snayfach/MAGpurify
+#
+#   Magpurify is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import os
 import sys
 from operator import itemgetter
-from magpurify.modules import utility
+from magpurify import utilities
 
 
-def fetch_args():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        usage=argparse.SUPPRESS,
-        description="MAGpurify: conspecific module: identify contigs that fail to align to closely related genomes",
+def fetch_args(parser):
+    parser.set_defaults(func=main)
+    parser.set_defaults(program="conspecific")
+    parser.add_argument(
+        "fna",
+        type=str,
+        help="Path to input genome in FASTA format"
     )
-    parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
         help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "--threads", type=int, default=1, help="Number of CPUs to use",
+        "mash_sketch",
+        type=str,
+        help="Path to Mash sketch of reference genomes",
     )
     parser.add_argument(
-        "--mash-sketch",
-        type=str,
-        required=True,
-        help="Path to Mash sketch of reference genomes",
+        "--threads",
+        type=int,
+        default=1,
+        help="Number of CPUs to use",
     )
     parser.add_argument(
         "--mash-dist",
@@ -71,22 +89,20 @@ def fetch_args():
         default="",
         help="List of references to exclude",
     )
-    args = vars(parser.parse_args())
-    return args
 
 
 def run_mash(mash_sketch, fna_path, tmp_dir, threads=1):
     out_path = f"{tmp_dir}/mash.dist"
     command = f"mash dist -p {threads} -d 0.25 {fna_path} {mash_sketch} > {out_path}"
-    out, err = utility.run_process(command)
+    out, err = utilities.run_process(command)
     with open(tmp_dir + "/id_map.tsv", "w") as f:
-        for id, rec in enumerate(utility.parse_mash(out_path)):
+        for id, rec in enumerate(utilities.parse_mash(out_path)):
             f.write(str(id) + "\t" + rec["target"] + "\n")
 
 
 def find_conspecific(tmp_dir, max_dist, exclude):
     targets = []
-    for rec in utility.parse_mash(f"{tmp_dir}/mash.dist"):
+    for rec in utilities.parse_mash(f"{tmp_dir}/mash.dist"):
         if rec["query"] == rec["target"]:
             continue
         elif rec["dist"] > max_dist:
@@ -107,7 +123,7 @@ def blastn(query, target, outdir, id):
         cmd = "blastn -outfmt '6 std qlen slen' "
         cmd += "-max_target_seqs 1 -max_hsps 1 "
         cmd += f"-query {query} -subject {target} "
-        out, err = utility.run_process(cmd)
+        out, err = utilities.run_process(cmd)
         out = out.decode("utf-8")
         open(out_path, "w").write(out)
     else:
@@ -117,7 +133,7 @@ def blastn(query, target, outdir, id):
 
 def id_blast_hits(blast_out, min_aln, min_pid):
     blast_hits = set([])
-    for rec in utility.parse_blast(blast_out, type="string"):
+    for rec in utilities.parse_blast(blast_out, type="string"):
         if rec["qcov"] < min_aln:
             continue
         elif rec["pid"] < min_pid:
@@ -145,7 +161,7 @@ def find_contig_targets(args, genomes, alignments):
     contigs = dict(
         [
             (id, {"hits": 0, "len": len(seq), "genomes": []})
-            for id, seq in utility.parse_fasta(args["fna"])
+            for id, seq in utilities.parse_fasta(args["fna"])
         ]
     )
     for genome, alns in zip(genomes, alignments):
@@ -169,11 +185,10 @@ def flag_contigs(args, contigs):
     return flagged
 
 
-def main():
-    args = fetch_args()
-    utility.add_tmp_dir(args)
-    utility.check_input(args)
-    utility.check_dependencies(["mash"])
+def main(args):
+    utilities.add_tmp_dir(args)
+    utilities.check_input(args)
+    utilities.check_dependencies(["mash"])
     if not os.path.exists(args["mash_sketch"]):
         sys.exit(f"\nError: mash sketch '{args['mash_sketch']}' not found\n")
     print("\n## Finding conspecific genomes in database")
@@ -215,6 +230,6 @@ def main():
     flagged = flag_contigs(args, contigs)
     out = f"{args['tmp_dir']}/flagged_contigs"
     with open(out, "w") as f:
-        for contig in flagged_contigs:
+        for contig in flagged:
             f.write(contig + "\n")
     print(f"   {len(flagged)} flagged contigs: {out}")

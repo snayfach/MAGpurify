@@ -1,34 +1,48 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#   This file is part of the magpurify package, available at:
+#   https://github.com/snayfach/MAGpurify
+#
+#   Magpurify is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import os
 import sys
-from magpurify.modules import utility
+from magpurify import utilities
 
 
-def fetch_args():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        usage=argparse.SUPPRESS,
-        description="MAGpurify: known-contam module: find contigs that match a database of known contaminants",
+def fetch_args(parser):
+    parser.set_defaults(func=main)
+    parser.set_defaults(program="known-contam")
+    parser.add_argument(
+        "fna",
+        type=str,
+        help="Path to input genome in FASTA format"
     )
-    parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
         help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "-t",
-        dest="threads",
+        "--threads",
         type=int,
         default=1,
         help="Number of CPUs to use",
     )
     parser.add_argument(
-        "-d",
-        dest="db",
+        "--db",
         type=str,
         help="Path to reference database. By default, the IMAGEN_DB environmental variable is used",
     )
@@ -47,8 +61,6 @@ def fetch_args():
         default=25,
         help="Minimum percent query coverage",
     )
-    args = vars(parser.parse_args())
-    return args
 
 
 def run_blastn(query, db, out, threads, qcov=25, pid=98, evalue=1e-5):
@@ -63,16 +75,15 @@ def run_blastn(query, db, out, threads, qcov=25, pid=98, evalue=1e-5):
     cmd += f"-perc_identity {pid} "
     cmd += f"-evalue {evalue} "
     cmd += f"-num_threads {threads} "
-    utility.run_process(cmd)
+    utilities.run_process(cmd)
 
 
-def main():
-    args = fetch_args()
-    utility.add_tmp_dir(args)
-    utility.check_input(args)
-    utility.check_dependencies(["blastn"])
-    utility.check_database(args)
-    utility.add_tmp_dir(args)
+def main(args):
+    utilities.add_tmp_dir(args)
+    utilities.check_input(args)
+    utilities.check_dependencies(["blastn"])
+    utilities.check_database(args)
+    utilities.add_tmp_dir(args)
     print("\n## Searching database with BLASTN")
     for target in ["hg38", "phix"]:
         db = f"{args['db']}/known-contam/{target}/{target}"
@@ -90,7 +101,7 @@ def main():
     flagged = set([])
     for target in ["hg38", "phix"]:
         out = f"{args['tmp_dir']}/{target}.m8"
-        for r in utility.parse_blast(out):
+        for r in utilities.parse_blast(out):
             flagged.add(r["qname"])
     flagged = list(flagged)
     out = f"{args['tmp_dir']}/flagged_contigs"

@@ -1,30 +1,45 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#   This file is part of the magpurify package, available at:
+#   https://github.com/snayfach/MAGpurify
+#
+#   Magpurify is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import sys
 import pandas as pd
-from magpurify.modules import utility
+from magpurify import utilities
 
 
-def fetch_args():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        usage=argparse.SUPPRESS,
-        description="MAGpurify: coverage module: find contigs with outlier coverage profile",
+def fetch_args(parser):
+    parser.set_defaults(func=main)
+    parser.set_defaults(program="coverage")
+    parser.add_argument(
+        "fna",
+        type=str,
+        help="Path to input genome in FASTA format"
     )
-    parser.add_argument("program", help=argparse.SUPPRESS)
-    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
         "out",
         type=str,
         help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "--bams",
+        "bams",
         nargs="+",
         type=str,
-        required=True,
-        help="Paths to input sorted BAM files",
+        help="Path to input sorted BAM file(s)",
     )
     parser.add_argument(
         "--max-deviation",
@@ -32,21 +47,18 @@ def fetch_args():
         default=5.0,
         help="Contigs with coverage greater than [max-deviation * mean coverage] or less than [(1/max-deviation) * mean coverage] will be flagged as outliers",
     )
-    args = vars(parser.parse_args())
-    return args
 
 
-def main():
-    args = fetch_args()
-    utility.add_tmp_dir(args)
-    utility.check_input(args)
-    utility.check_dependencies(["coverm"])
+def main(args):
+    utilities.add_tmp_dir(args)
+    utilities.check_input(args)
+    utilities.check_dependencies(["coverm"])
     print("\n## Computing contig coverage")
-    utility.run_coverm(args["bams"], args["tmp_dir"])
+    utilities.run_coverm(args["bams"], args["tmp_dir"])
     coverage_df = pd.read_csv(f"{args['tmp_dir']}/coverage.tsv", sep="\t", index_col=0)
     print("\n## Identifying outlier contigs")
     mag_id_list = []
-    for id, seq in utility.parse_fasta(args["fna"]):
+    for id, seq in utilities.parse_fasta(args["fna"]):
         mag_id_list.append(id)
     mag_coverage_df = coverage_df.loc[mag_id_list]
     largest_mean_coverage_sample = mag_coverage_df.mean(axis=0).idxmax()
