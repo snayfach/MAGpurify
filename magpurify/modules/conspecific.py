@@ -26,26 +26,15 @@ from magpurify import utilities
 def fetch_args(parser):
     parser.set_defaults(func=main)
     parser.set_defaults(program="conspecific")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
-        "fna",
-        type=str,
-        help="Path to input genome in FASTA format"
+        "out", type=str, help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "out",
-        type=str,
-        help="Output directory to store results and intermediate files",
+        "mash_sketch", type=str, help="Path to Mash sketch of reference genomes",
     )
     parser.add_argument(
-        "mash_sketch",
-        type=str,
-        help="Path to Mash sketch of reference genomes",
-    )
-    parser.add_argument(
-        "--threads",
-        type=int,
-        default=1,
-        help="Number of CPUs to use",
+        "--threads", type=int, default=1, help="Number of CPUs to use",
     )
     parser.add_argument(
         "--mash-dist",
@@ -54,16 +43,10 @@ def fetch_args(parser):
         help="Mash distance to reference genomes",
     )
     parser.add_argument(
-        "--max-genomes",
-        type=int,
-        default=25,
-        help="Max number of genomes to use",
+        "--max-genomes", type=int, default=25, help="Max number of genomes to use",
     )
     parser.add_argument(
-        "--min-genomes",
-        type=int,
-        default=1,
-        help="Min number of genomes to use",
+        "--min-genomes", type=int, default=1, help="Min number of genomes to use",
     )
     parser.add_argument(
         "--contig-aln",
@@ -78,16 +61,10 @@ def fetch_args(parser):
         help="Minimum percent identity of contig aligned to reference",
     )
     parser.add_argument(
-        "--hit-rate",
-        type=float,
-        default=0.00,
-        help="Hit rate for flagging contigs",
+        "--hit-rate", type=float, default=0.00, help="Hit rate for flagging contigs",
     )
     parser.add_argument(
-        "--exclude",
-        nargs="+",
-        default="",
-        help="List of references to exclude",
+        "--exclude", nargs="+", default="", help="List of references to exclude",
     )
 
 
@@ -191,33 +168,41 @@ def main(args):
     utilities.check_dependencies(["mash"])
     if not os.path.exists(args["mash_sketch"]):
         sys.exit(f"\nError: mash sketch '{args['mash_sketch']}' not found\n")
-    print("\n## Finding conspecific genomes in database")
+    print("\u001b[1m" + "• Finding conspecific genomes in database" + "\u001b[0m")
     run_mash(args["mash_sketch"], args["fna"], args["tmp_dir"], args["threads"])
     genomes = find_conspecific(args["tmp_dir"], args["mash_dist"], args["exclude"])
-    print(f"   {len(genomes)} genomes within {args['mash_dist']} mash-dist")
+    print(f"  {len(genomes)} genomes within {args['mash_dist']} mash-dist")
     out = f"{args['tmp_dir']}/conspecific.list"
     with open(out, "w") as f:
         f.write("genome_id\tmash_dist\n")
         for genome_id, mash_dist in genomes:
             f.write(genome_id + "\t" + str(mash_dist) + "\n")
-    print(f"   list of genomes: {out}")
-    print(f"   mash output: {args['tmp_dir']}/mash.dist")
+    print(f"  list of genomes: {out}")
+    print(f"  mash output: {args['tmp_dir']}/mash.dist")
     if len(genomes) < args["min_genomes"]:
         sys.exit("\nError: insufficient number of conspecific genomes\n")
     if len(genomes) > args["max_genomes"]:
-        print(f"\n## Selecting top {args['max_genomes']} most-similar genomes")
+        print(
+            "\u001b[1m"
+            + f"\n• Selecting top {args['max_genomes']} most-similar genomes"
+            + "\u001b[0m"
+        )
         genomes = genomes[0 : args["max_genomes"]]
         out = f"{args['tmp_dir']}/conspecific_subset.list"
         with open(out, "w") as f:
             f.write("genome_id\tmash_dist\n")
             for genome_id, mash_dist in genomes:
                 f.write(genome_id + "\t" + str(mash_dist) + "\n")
-        print(f"   list of genomes: {out}")
-    print("\n## Performing pairwise alignment of contigs in bin to database genomes")
+        print(f"  list of genomes: {out}")
+    print(
+        "\u001b[1m"
+        + "\n• Performing pairwise alignment of contigs in bin to database genomes"
+        + "\u001b[0m"
+    )
     alignments = align_contigs(args, genomes)
     num_alns = sum(len(_.split("\n")) for _ in alignments)
-    print(f"   total alignments: {num_alns}")
-    print("\n## Summarizing alignments")
+    print(f"  total alignments: {num_alns}")
+    print("\u001b[1m" + "\n• Summarizing alignments" + "\u001b[0m")
     contigs = find_contig_targets(args, genomes, alignments)
     out = f"{args['tmp_dir']}/contig_hits.tsv"
     with open(out, "w") as f:
@@ -225,11 +210,15 @@ def main(args):
         for contig, values in contigs.items():
             row = [contig, str(values["len"]), f"{values['hits']}/{len(genomes)}"]
             f.write("\t".join(row) + "\n")
-    print(f"   contig features: {out}")
-    print("\n## Identifying contigs with no conspecific alignments")
+    print(f"  contig features: {out}")
+    print(
+        "\u001b[1m"
+        + "\n• Identifying contigs with no conspecific alignments"
+        + "\u001b[0m"
+    )
     flagged = flag_contigs(args, contigs)
     out = f"{args['tmp_dir']}/flagged_contigs"
     with open(out, "w") as f:
         for contig in flagged:
             f.write(contig + "\n")
-    print(f"   {len(flagged)} flagged contigs: {out}")
+    print(f"  {len(flagged)} flagged contigs: {out}")

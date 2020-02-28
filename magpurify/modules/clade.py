@@ -39,21 +39,12 @@ rank_names = {
 def fetch_args(parser):
     parser.set_defaults(func=main)
     parser.set_defaults(program="clade-markers")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
-        "fna",
-        type=str,
-        help="Path to input genome in FASTA format"
+        "out", type=str, help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "out",
-        type=str,
-        help="Output directory to store results and intermediate files",
-    )
-    parser.add_argument(
-        "--threads",
-        type=int,
-        default=1,
-        help="Number of CPUs to use",
+        "--threads", type=int, default=1, help="Number of CPUs to use",
     )
     parser.add_argument(
         "--db",
@@ -223,7 +214,7 @@ def main(args):
     utilities.add_tmp_dir(args)
     utilities.check_input(args)
     utilities.check_database(args)
-    print("\n## Reading database info")
+    print("\u001b[1m" + "• Reading database info" + "\u001b[0m")
     ref_taxonomy = read_ref_taxonomy(args["db"])
     taxon_to_taxonomy = {}
     for taxonomy in set(ref_taxonomy.values()):
@@ -242,16 +233,18 @@ def main(args):
             "g": 20,
             "s": 19,
         }
-    print("\n## Calling genes with Prodigal")
+    print("\u001b[1m" + "\n• Calling genes with Prodigal" + "\u001b[0m")
     utilities.run_prodigal(args["fna"], args["tmp_dir"])
-    print(f"   all genes: {args['tmp_dir']}/genes.[ffn|faa]")
+    print(f"  all genes: {args['tmp_dir']}/genes.[ffn|faa]")
     print(
-        "\n## Performing pairwise alignment of genes against MetaPhlan2 db of clade-specific genes"
+        "\u001b[1m"
+        + "\n• Performing pairwise alignment of genes against MetaPhlan2 database of clade-specific genes"
+        + "\u001b[0m"
     )
     utilities.run_lastal(args["db"], args["tmp_dir"], args["threads"])
-    print(f"   alignments: {args['tmp_dir']}/genes.m8")
+    print(f"  alignments: {args['tmp_dir']}/genes.m8")
 
-    print("\n## Finding top hits to db")
+    print("\u001b[1m" + "\n• Finding top hits to database" + "\u001b[0m")
     genes = {}
     for aln in utilities.parse_last(args["tmp_dir"] + "/genes.m8"):
         # clade exclusion
@@ -272,8 +265,8 @@ def main(args):
             genes[aln["qid"]].ref_taxa = ref_taxa
         elif float(aln["score"]) > float(genes[aln["qid"]].aln["score"]):
             genes[aln["qid"]].ref_taxa = ref_taxa
-    print("   %s genes with a database hit" % len(genes))
-    print("\n## Classifying genes at each taxonomic rank")
+    print("  %s genes with a database hit" % len(genes))
+    print("\u001b[1m" + "\n• Classifying genes at each taxonomic rank" + "\u001b[0m")
     counts = {}
     for gene in genes.values():
         for ref_taxon in gene.ref_taxa:
@@ -291,8 +284,8 @@ def main(args):
             gene.taxa[rank] = ref_taxon
             counts[rank] += 1
     for rank in ranks:
-        print(f"   {rank_names[rank]}: {counts[rank]} classified genes")
-    print("\n## Taxonomically classifying contigs")
+        print(f"  {rank_names[rank]}: {counts[rank]} classified genes")
+    print("\u001b[1m" + "\n• Taxonomically classifying contigs" + "\u001b[0m")
     contigs = {}
     for id, seq in utilities.parse_fasta(args["fna"]):
         contigs[id] = Contig()
@@ -312,11 +305,11 @@ def main(args):
                 counts[rank] = 0
             if taxon is not None:
                 counts[rank] += 1
-    print("   total contigs: %s" % len(contigs))
+    print("  total contigs: %s" % len(contigs))
     for rank in ranks:
-        print(f"   {rank_names[rank]}: {counts[rank]} classified contigs")
+        print(f"  {rank_names[rank]}: {counts[rank]} classified contigs")
 
-    print("\n## Taxonomically classifying genome")
+    print("\u001b[1m" + "\n• Taxonomically classifying genome" + "\u001b[0m")
     bin = Bin()
     bin.classify(
         contigs,
@@ -326,8 +319,8 @@ def main(args):
         args["min_genes"],
         args["lowest_rank"],
     )
-    print(f"   consensus taxon: {bin.cons_taxon}")
-    print("\n## Identifying taxonomically discordant contigs")
+    print(f"  consensus taxon: {bin.cons_taxon}")
+    print("\u001b[1m" + "\n• Identifying taxonomically discordant contigs" + "\u001b[0m")
     if bin.cons_taxon is not None:
         bin.rank_index = (
             taxon_to_taxonomy[bin.cons_taxon].split("|").index(bin.cons_taxon)
@@ -341,7 +334,7 @@ def main(args):
         if contig.flagged:
             flagged.append(contig.id)
     out = f"{args['tmp_dir']}/flagged_contigs"
-    print(f"   {len(flagged)} flagged contigs: {out}")
+    print(f"  {len(flagged)} flagged contigs: {out}")
     with open(out, "w") as f:
         for contig in flagged:
             f.write(contig + "\n")

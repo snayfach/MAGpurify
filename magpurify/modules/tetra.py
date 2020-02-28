@@ -30,19 +30,11 @@ from magpurify import utilities
 def fetch_args(parser):
     parser.set_defaults(func=main)
     parser.set_defaults(program="tetra-freq")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
-        "fna",
-        type=str,
-        help="Path to input genome in FASTA format"
+        "out", type=str, help="Output directory to store results and intermediate files",
     )
-    parser.add_argument(
-        "out",
-        type=str,
-        help="Output directory to store results and intermediate files",
-    )
-    parser.add_argument(
-        "--cutoff", type=float, default=0.06, help="Cutoff"
-    )
+    parser.add_argument("--cutoff", type=float, default=0.06, help="Cutoff")
 
 
 def init_kmers():
@@ -69,7 +61,7 @@ def main(args):
     utilities.check_input(args)
     utilities.check_dependencies(["blastn"])
 
-    print("\n## Counting tetranucleotides")
+    print("\u001b[1m" + "• Counting tetranucleotides" + "\u001b[0m")
     # init data
     contigs = {}
     for id, seq in utilities.parse_fasta(args["fna"]):
@@ -89,7 +81,7 @@ def main(args):
                 kmer_rev = utilities.reverse_complement(kmer_fwd)
                 contig.kmers[kmer_rev] += 1
 
-    print("\n## Normalizing counts")
+    print("\u001b[1m" + "\n• Normalizing counts" + "\u001b[0m")
     for contig in contigs.values():
         total = float(sum(contig.kmers.values()))
         for kmer, count in contig.kmers.items():
@@ -98,14 +90,16 @@ def main(args):
             else:
                 contig.kmers[kmer] = 0.00
 
-    print("\n## Performing PCA")
+    print("\u001b[1m" + "\n• Performing PCA" + "\u001b[0m")
     df = pd.DataFrame(dict([(c.id, c.kmers) for c in contigs.values()]))
     pca = PCA(n_components=1)
     pca.fit(df)
     pc1 = pca.components_[0]
 
     print(
-        "\n## Computing per-contig deviation from the mean along the first principal component"
+        "\u001b[1m"
+        + "\n• Computing per-contig deviation from the mean along the first principal component"
+        + "\u001b[0m"
     )
     mean_pc = np.mean(pc1)
     for contig_id, contig_pc in zip(list(df.columns), pc1):
@@ -113,13 +107,13 @@ def main(args):
         contigs[contig_id].values = {}
         contigs[contig_id].values["delta"] = abs(contig_pc - mean_pc)
 
-    print("\n## Identifying outlier contigs")
+    print("\u001b[1m" + "\n• Identifying outlier contigs" + "\u001b[0m")
     flagged = []
     for contig in contigs.values():
         if contig.values["delta"] > args["cutoff"]:
             flagged.append(contig.id)
     out = f"{args['tmp_dir']}/flagged_contigs"
-    print(f"   {len(flagged)} flagged contigs: {out}")
+    print(f"  {len(flagged)} flagged contigs: {out}")
     with open(out, "w") as f:
         for contig in flagged:
             f.write(contig + "\n")

@@ -50,7 +50,7 @@ class Contig:
 def main(args):
     utilities.add_tmp_dir(args)
     utilities.check_input(args)
-    print("\n## Computing mean contig GC content")
+    print("\u001b[1m" + "• Computing mean contig GC content" + "\u001b[0m")
     contigs = {}
     for id, seq in utilities.parse_fasta(args["fna"]):
         contig = Contig()
@@ -59,17 +59,17 @@ def main(args):
         contig.gc = round(SeqUtils.GC(seq), 2)
         contigs[id] = contig
     mean = np.mean([c.gc for c in contigs.values()])
-    print("\n## Computing per-contig deviation from mean")
+    print("\u001b[1m" + "\n• Computing per-contig deviation from mean" + "\u001b[0m")
     for contig in contigs.values():
         contig.values = {}
         contig.values["delta"] = abs(contig.gc - mean)
-    print("\n## Identifying outlier contigs")
+    print("\u001b[1m" + "\n• Identifying outlier contigs" + "\u001b[0m")
     flagged = []
     for contig in contigs.values():
         if contig.values["delta"] > args["cutoff"]:
             flagged.append(contig.id)
     out = f"{args['tmp_dir']}/flagged_contigs"
-    print(f"   {len(flagged)} flagged contigs: {out}")
+    print(f"  {len(flagged)} flagged contigs: {out}")
     with open(out, "w") as f:
         for contig in flagged:
             f.write(contig + "\n")

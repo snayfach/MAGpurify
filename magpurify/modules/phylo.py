@@ -453,24 +453,24 @@ def main(args):
     utilities.check_dependencies(["prodigal", "hmmsearch", "blastp", "blastn"])
     utilities.check_database(args)
 
-    print("\n## Calling genes with Prodigal")
+    print("\u001b[1m" + "• Calling genes with Prodigal" + "\u001b[0m")
     utilities.run_prodigal(args["fna"], args["tmp_dir"])
-    print(f"   all genes: {args['tmp_dir']}/genes.[ffn|faa]")
+    print(f"  all genes: {args['tmp_dir']}/genes.[ffn|faa]")
 
-    print("\n## Identifying PhyEco phylogenetic marker genes with HMMER")
+    print("\u001b[1m" + "\n• Identifying PhyEco phylogenetic marker genes with HMMER" + "\u001b[0m")
     utilities.run_hmmsearch(args["db"], args["tmp_dir"], args["tmp_dir"], args["threads"])
     extract_homologs(args["tmp_dir"])
-    print(f"   hmm results: {args['tmp_dir']}/phyeco.hmmsearch")
-    print(f"   marker genes: {args['tmp_dir']}/markers")
+    print(f"  hmm results: {args['tmp_dir']}/phyeco.hmmsearch")
+    print(f"  marker genes: {args['tmp_dir']}/markers")
 
-    print("\n## Performing pairwise BLAST alignment of marker genes against database")
+    print("\u001b[1m" + "\n• Performing pairwise BLAST alignment of marker genes against database" + "\u001b[0m")
     align_homologs(args["db"], args["tmp_dir"], args["seq_type"], args["threads"])
-    print(f"   blast results: {args['tmp_dir']}/alns")
+    print(f"  blast results: {args['tmp_dir']}/alns")
 
-    print("\n## Finding taxonomic outliers")
+    print("\u001b[1m" + "\n• Finding taxonomic outliers" + "\u001b[0m")
     flagged = flag_contigs(args["db"], args["tmp_dir"], args)
     out = f"{args['tmp_dir']}/flagged_contigs"
-    print(f"   {len(flagged)} flagged contigs: {out}")
+    print(f"  {len(flagged)} flagged contigs: {out}")
     with open(out, "w") as f:
         for contig in flagged:
             f.write(contig + "\n")

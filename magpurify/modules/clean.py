@@ -45,13 +45,13 @@ def fetch_args(parser):
 
 def main(args):
     utilities.check_input(args)
-    print("\n## Reading genome bin")
+    print("\u001b[1m" + "• Reading genome bin" + "\u001b[0m")
     bin = {}
     for id, seq in utilities.parse_fasta(args["fna"]):
         bin[id] = seq
     bin_length = round(sum(len(_) for _ in bin.values()) / 1000, 2)
-    print(f"   genome length: {len(bin)} contigs, {bin_length} Kbp")
-    print("\n## Reading flagged contigs")
+    print(f"  genome length: {len(bin)} contigs, {bin_length} Kbp")
+    print("\u001b[1m" + "\n• Reading flagged contigs" + "\u001b[0m")
     flagged_contigs = []
     programs = [
         "phylo-markers",
@@ -65,22 +65,22 @@ def main(args):
     for program in programs:
         path = f"{args['out']}/{program}/flagged_contigs"
         if not os.path.exists(path):
-            print(f"   {program}: no output file found")
+            print(f"  {program}: no output file found")
         else:
             contigs = [_.rstrip() for _ in open(path)]
             bases = round(sum(len(bin[id]) for id in contigs) / 1000, 2)
             flagged_contigs += contigs
-            print(f"   {program}: {len(contigs)} contigs, {bases} Kbp")
+            print(f"  {program}: {len(contigs)} contigs, {bases} Kbp")
     flagged_contigs = list(set(flagged_contigs))
     flagged_length = round(sum(len(bin[id]) for id in flagged_contigs) / 1000, 2)
-    print("\n## Removing flagged contigs")
+    print("\u001b[1m" + "\n• Removing flagged contigs" + "\u001b[0m")
     clean = bin.copy()
     for id in flagged_contigs:
         del clean[id]
     clean_length = round(sum(len(_) for _ in clean.values()) / 1000, 2)
-    print(f"   removed: {len(flagged_contigs)} contigs, {flagged_length} Kbp")
-    print(f"   remains: {len(clean)} contigs, {clean_length} Kbp")
+    print(f"  removed: {len(flagged_contigs)} contigs, {flagged_length} Kbp")
+    print(f"  remains: {len(clean)} contigs, {clean_length} Kbp")
     with open(args['out_fna'], "w") as f:
         for id, seq in clean.items():
             f.write(">" + id + "\n" + seq + "\n")
-    print(f"   cleaned bin: {args['out_fna']}")
+    print(f"  cleaned bin: {args['out_fna']}")

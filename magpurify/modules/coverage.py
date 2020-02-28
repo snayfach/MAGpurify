@@ -25,21 +25,12 @@ from magpurify import utilities
 def fetch_args(parser):
     parser.set_defaults(func=main)
     parser.set_defaults(program="coverage")
+    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
-        "fna",
-        type=str,
-        help="Path to input genome in FASTA format"
+        "out", type=str, help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "out",
-        type=str,
-        help="Output directory to store results and intermediate files",
-    )
-    parser.add_argument(
-        "bams",
-        nargs="+",
-        type=str,
-        help="Path to input sorted BAM file(s)",
+        "bams", nargs="+", type=str, help="Path to input sorted BAM file(s)",
     )
     parser.add_argument(
         "--max-deviation",
@@ -53,10 +44,10 @@ def main(args):
     utilities.add_tmp_dir(args)
     utilities.check_input(args)
     utilities.check_dependencies(["coverm"])
-    print("\n## Computing contig coverage")
+    print("\u001b[1m" + "• Computing contig coverage" + "\u001b[0m")
     utilities.run_coverm(args["bams"], args["tmp_dir"])
     coverage_df = pd.read_csv(f"{args['tmp_dir']}/coverage.tsv", sep="\t", index_col=0)
-    print("\n## Identifying outlier contigs")
+    print("\u001b[1m" + "\n• Identifying outlier contigs" + "\u001b[0m")
     mag_id_list = []
     for id, seq in utilities.parse_fasta(args["fna"]):
         mag_id_list.append(id)
@@ -64,7 +55,9 @@ def main(args):
     largest_mean_coverage_sample = mag_coverage_df.mean(axis=0).idxmax()
     if mag_coverage_df.shape[1] > 1:
         print(
-            f"\n## Sample being used for outlier detection: {largest_mean_coverage_sample.split()[0]}"
+            "\u001b[1m"
+            + f"\n• Sample being used for outlier detection: {largest_mean_coverage_sample.split()[0]}"
+            + "\u001b[0m"
         )
     mag_coverage_df = mag_coverage_df.loc[:, largest_mean_coverage_sample]
     if mag_coverage_df.mean() < 1:
@@ -76,7 +69,7 @@ def main(args):
     )
     flagged = mag_coverage_df.loc[outliers].index.tolist()
     out = f"{args['tmp_dir']}/flagged_contigs"
-    print(f"   {len(flagged)} flagged contigs: {out}")
+    print(f"  {len(flagged)} flagged contigs: {out}")
     with open(out, "w") as f:
         for contig in flagged:
             f.write(contig + "\n")

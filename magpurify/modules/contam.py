@@ -84,7 +84,7 @@ def main(args):
     utilities.check_dependencies(["blastn"])
     utilities.check_database(args)
     utilities.add_tmp_dir(args)
-    print("\n## Searching database with BLASTN")
+    print("\u001b[1m" + "• Searching database with BLASTN" + "\u001b[0m")
     for target in ["hg38", "phix"]:
         db = f"{args['db']}/known-contam/{target}/{target}"
         out = f"{args['tmp_dir']}/{target}.m8"
@@ -97,7 +97,7 @@ def main(args):
             args["pid"],
             args["evalue"],
         )
-    print("\n## Identifying contigs with hits to db")
+    print("\u001b[1m" + "\n• Identifying contigs with hits to database" + "\u001b[0m")
     flagged = set([])
     for target in ["hg38", "phix"]:
         out = f"{args['tmp_dir']}/{target}.m8"
@@ -105,7 +105,7 @@ def main(args):
             flagged.add(r["qname"])
     flagged = list(flagged)
     out = f"{args['tmp_dir']}/flagged_contigs"
-    print(f"   {len(flagged)} flagged contigs: {out}")
+    print(f"  {len(flagged)} flagged contigs: {out}")
     with open(out, "w") as f:
         for contig in flagged:
             f.write(contig + "\n")

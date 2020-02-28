@@ -1,37 +1,37 @@
 # MAGpurify
 
-**This is not a production-ready software repository and is still under active development. Bugs and feature requests will not addressed. Please use with caution. If this code is useful, please cite: http://dx.doi.org/10.1038/s41586-019-1058-x**
-
 This package uses a combination of different features and algorithms to identify contamination in metagenome-assembled genomes (MAGs). Contamination is defined as contigs that originated from a different species relative to the dominant organism present in the MAG.
 
 Each module in the software package was designed to be highly specific. This means that not all contamination (contigs from other species) will be removed, but very few contigs will be incorrectly removed. Feel free to modify the default parameters for more sensitive detection of contamination.
 
 ## Installation
 
-Clone the repo from github:
+- Clone the repo from github:
 `git clone https://github.com/snayfach/MAGpurify`
 
-Install required python libraries:
+- Install required python libraries:
 `pip install --user pandas numpy sklearn biopython`
 
-Install 3rd party programs and make sure they are located on your PATH:
+- Install 3rd party programs and make sure they are located on your PATH:
+  - [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+  - [Prodigal](https://github.com/hyattpd/Prodigal)
+  - [HMMER](http://hmmer.org/download.html)
+  - [LAST](http://last.cbrc.jp)
+  - [Mash](https://github.com/marbl/Mash/releases)
+  - [CoverM](https://github.com/wwood/CoverM/releases)
 
-* [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
-* [Prodigal](https://github.com/hyattpd/Prodigal)
-* [HMMER](http://hmmer.org/download.html)
-* [LAST](http://last.cbrc.jp)
-* [Mash](https://github.com/marbl/Mash/releases)
-* [CoverM](https://github.com/wwood/CoverM/releases)
+- Download the reference database: [MAGpurify-db-v1.0.tar.bz2](http://bit.ly/MAGpurify-db)
 
-Download the reference database: [MAGpurify-db-v1.0.tar.bz2](http://bit.ly/MAGpurify-db)
+- Unpack the database:
+```
+tar -jxvf MAGpurify-db-v1.0.tar.bz2
+```
 
-And unpack the database:
-`tar -jxvf MAGpurify-db-v1.0.tar.bz2`
-
-Update your environment:
-`export PATH=$PATH:/path/to/MAGpurify`
-`export MAGPURIFYDB=/path/to/MAGpurify-db-v1.0`
-
+- Update your environment:
+```
+export MAGPURIFYDB=/path/to/MAGpurify-db-v1.0
+```
+If you don't want to put the database into your PATH, you can still use it through the `--db` parameter of the `phylo-markers`, `clade-markers` and `known-contam` modules.
 
 ## A quick overview
 
@@ -112,22 +112,22 @@ Now remove the contamintion from the bin with `clean-bin`:
 ```
 $ magpurify clean-bin example/test.fna example/output example/test_cleaned.fna
 
-## Reading genome bin
-   genome length: 704 contigs, 4144.3 Kbp
+• Reading genome bin
+  genome length: 704 contigs, 4144.3 Kbp
 
-## Reading flagged contigs
-   phylo-markers: 1 contigs, 17.18 Kbp
-   clade-markers: 3 contigs, 17.1 Kbp
-   conspecific: no output file found
-   tetra-freq: 0 contigs, 0.0 Kbp
-   gc-content: 0 contigs, 0.0 Kbp
-   coverage: no output file found
-   known-contam: 0 contigs, 0.0 Kbp
+• Reading flagged contigs
+  phylo-markers: 1 contigs, 17.18 Kbp
+  clade-markers: 3 contigs, 17.1 Kbp
+  conspecific: no output file found
+  tetra-freq: 0 contigs, 0.0 Kbp
+  gc-content: 0 contigs, 0.0 Kbp
+  coverage: no output file found
+  known-contam: 0 contigs, 0.0 Kbp
 
-## Removing flagged contigs
-   removed: 4 contigs, 34.28 Kbp
-   remains: 700 contigs, 4110.03 Kbp
-   cleaned bin: example/test_cleaned.fna
+• Removing flagged contigs
+  removed: 4 contigs, 34.28 Kbp
+  remains: 700 contigs, 4110.03 Kbp
+  cleaned bin: example/test_cleaned.fna
 ```
 
 In summary, 2 of the 7 modules predicted at least one contaminant and the cleaned bin was written to `example/output/cleaned_bin.fna`
@@ -147,20 +147,20 @@ Now you can run the conspecific module:
 ```
 $ magpurify conspecific example/test.fna example/output example/ref_genomes.msh
 
-## Finding conspecific genomes in database
-   25 genomes within 0.05 mash-dist
-   list of genomes: example/output/conspecific/conspecific.list
-   mash output: example/output/conspecific/mash.dist
+• Finding conspecific genomes in database
+  25 genomes within 0.05 mash-dist
+  list of genomes: example/output/conspecific/conspecific.list
+  mash output: example/output/conspecific/mash.dist
 
-## Performing pairwise alignment of contigs in bin to database genomes
-   total alignments: 12125
+• Performing pairwise alignment of contigs in bin to database genomes
+  total alignments: 12125
 
-## Summarizing alignments
-   contig features: example/output/conspecific/contig_hits.tsv
+• Summarizing alignments
+  contig features: example/output/conspecific/contig_hits.tsv
 
-## Identifying contigs with no conspecific alignments
-   238 flagged contigs, 450.02 Kbp
-   flagged contigs: example/output/conspecific/flagged_contigs
+• Identifying contigs with no conspecific alignments
+  238 flagged contigs, 450.02 Kbp
+  flagged contigs: example/output/conspecific/flagged_contigs
 ```
 
 So, the conspecific module alone identified 238 putative contaminants! This illustrates that this module can be very sensitive when your MAG is similar to closely related genomes in your reference database… or to other MAGs!
@@ -170,14 +170,14 @@ So, the conspecific module alone identified 238 putative contaminants! This illu
 To run the `coverage` module, you need to input a sorted BAM file containing reads mapped to the MAG (or the original metagenome, as long as the contig name is unchanged). You can also input multiple BAM files and MAGpurify will pick the one with the greatest average contig coverage.
 
 ```
-$ magpurify conspecific example/test.fna example/output ./BAM/sample_1.bam ./BAM/sample_2.bam ./BAM/sample_3.bam
+$ magpurify coverage example/test.fna example/output BAM/sample_1.bam BAM/sample_2.bam BAM/sample_3.bam
 
-## Computing contig coverage
+• Computing contig coverage
 
-## Identifying outlier contigs
+• Identifying outlier contigs
 
-## Sample being used for outlier detection: sample_2
-   2 flagged contigs: example/output/coverage/flagged_contigs
+• Sample being used for outlier detection: sample_2
+  2 flagged contigs: example/output/coverage/flagged_contigs
 ```
 
 ## Details on the individual modules
@@ -202,3 +202,7 @@ This module works by identifying contigs with outlier coverage based on read map
 
 ### known-contam
 This module works by identifying contigs that match a database of known contaminants. So far, the human genome and phiX genome are the only ones in the database.
+
+## Citation
+
+If this code is useful, please cite: http://dx.doi.org/10.1038/s41586-019-1058-x
