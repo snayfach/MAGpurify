@@ -21,7 +21,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="magpurify",
-    version="2.0",
+    version="2.0.1",
     packages=find_packages(),
     license="GNU General Public License v3.0",
     description="Identify and remove incorrectly binned contigs from metagenome-assembled genomes.",

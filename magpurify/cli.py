@@ -26,7 +26,7 @@ def cli():
         description="Identify and remove incorrectly binned contigs from metagenome-assembled genomes.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 2.0")
+    parser.add_argument("--version", action="version", version="%(prog)s 2.0.1")
     subparsers = parser.add_subparsers()
     phylo_parser = subparsers.add_parser(
         "phylo-markers",

@@ -196,25 +196,25 @@ $ magpurify coverage example/test.fna example/output BAM/sample_1.bam BAM/sample
 
 ## Details on the individual modules
 
-### phylo-markers
+### `phylo-markers`
 This module works by taxonomically annotating your contigs based on a database of phylogenetic marker genes from the PhyEco database and identifying taxonomically discordant contigs.
 
-### clade-markers
+### `clade-markers`
 This module works in a very similar way to `phylo-markers`, but instead uses clade-specific markers from the MetaPhlAn 2 database for taxonomic annotation.
 
-### conspecific
+### `conspecific`
 The logic behind this module is that strains of the same species should have similarity along most of the genome. Therefore, this module works by first finding strains of the same species, and then performing pairwise alignment of contigs. Contaminants are identified which do not align at all between genomes.
 
-### tetra-freq
+### `tetra-freq`
 This module works by identifying contigs with outlier nucleotide composition based on tetranucleotide frequencies (TNF). In order to reduce TNF down to a single dimension, principal component analysis (PCA) is performed and the first principal component is used.
 
-### gc-content
+### `gc-content`
 This module works by identifying contigs with outlier nucleotide composition based on GC content.
 
-### coverage
+### `coverage`
 This module works by identifying contigs with outlier coverage based on read mapping information.
 
-### known-contam
+### `known-contam`
 This module works by identifying contigs that match a database of known contaminants. So far, the human genome and phiX genome are the only ones in the database.
 
 ## Citation
