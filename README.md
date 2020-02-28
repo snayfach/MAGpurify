@@ -6,21 +6,31 @@ Each module in the software package was designed to be highly specific. This mea
 
 ## Installation
 
-- Clone the repo from github:
-`git clone https://github.com/snayfach/MAGpurify`
+There is two ways of installing MAGpurify:
 
-- Install required python libraries:
-`pip install --user pandas numpy sklearn biopython`
+- Using conda:
+```
+conda install -c bioconda magpurify
+```
 
-- Install 3rd party programs and make sure they are located on your PATH:
-  - [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
-  - [Prodigal](https://github.com/hyattpd/Prodigal)
-  - [HMMER](http://hmmer.org/download.html)
-  - [LAST](http://last.cbrc.jp)
-  - [Mash](https://github.com/marbl/Mash/releases)
-  - [CoverM](https://github.com/wwood/CoverM/releases)
+- Using pip:
+```
+pip install magpurify
+```
 
-- Download the reference database: [MAGpurify-db-v1.0.tar.bz2](http://bit.ly/MAGpurify-db)
+If you install MAGpurify using conda, all dependencies will be installed automatically. However, if you choose to install it through pip, you will need to install some required third-party software:
+- [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+- [Prodigal](https://github.com/hyattpd/Prodigal)
+- [HMMER](http://hmmer.org/download.html)
+- [LAST](http://last.cbrc.jp)
+- [Mash](https://github.com/marbl/Mash/releases)
+- [CoverM](https://github.com/wwood/CoverM/releases)
+
+### MAGpurify database
+
+Whichever method you choose to install MAGpurify you will need to download a database in order to use some of its modules (see the [ Dependency on external data](#dependency-on-external-data) section):
+
+- Download the reference database: [MAGpurify-db-v1.0.tar.bz2](https://zenodo.org/record/3688811/files/MAGpurify-db-v1.0.tar.bz2?download=1)
 
 - Unpack the database:
 ```
@@ -32,6 +42,10 @@ tar -jxvf MAGpurify-db-v1.0.tar.bz2
 export MAGPURIFYDB=/path/to/MAGpurify-db-v1.0
 ```
 If you don't want to put the database into your PATH, you can still use it through the `--db` parameter of the `phylo-markers`, `clade-markers` and `known-contam` modules.
+
+The MAGpurify database is hosted in Zenodo and can be referenced through a Digital Object Identifier:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3688811.svg)](https://doi.org/10.5281/zenodo.3688811)
 
 ## A quick overview
 
@@ -205,4 +219,6 @@ This module works by identifying contigs that match a database of known contamin
 
 ## Citation
 
-If this code is useful, please cite: http://dx.doi.org/10.1038/s41586-019-1058-x
+If this code is useful, please cite:
+
+> Nayfach, Stephen, et al. "[New insights from uncultivated genomes of the global human gut microbiome.](http://dx.doi.org/10.1038/s41586-019-1058-x)" *Nature* 568.7753 (2019): 505-510.

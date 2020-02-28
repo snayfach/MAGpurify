@@ -165,19 +165,15 @@ class Bin:
         self.genes = None
 
     def exclude_clades(self, clades):
-
         # loop over genes in bin
         for gene in list(self.genes.values()):
-
             # keep track of which annotations to exclude for each gene
             exclude_indexes = []
-
             # loop over annotations for each gene
             for index, annotation in enumerate(gene.annotations):
                 is_match = any([c in annotation.taxon for c in clades])
                 if is_match:
                     exclude_indexes.append(index)
-
             # delete annotations
             for index in exclude_indexes[::-1]:
                 del gene.annotations[index]
@@ -191,7 +187,6 @@ class Bin:
     def classify_taxonomy(self, allow_noclass=False, min_fraction=0.5):
         ranks = ["s", "g", "f", "o", "c", "p"]
         for rank_index, rank in enumerate(ranks):
-
             # get list of taxa across all genes
             # never count a taxon 2x per gene
             gene_taxa = []
@@ -211,14 +206,11 @@ class Bin:
                 else:
                     taxa = list(set([a.taxon[rank_index] for a in gene.annotations]))
                 gene_taxa += taxa
-
             # skip rank where there are no annotations
             if len(gene_taxa) == 0:
                 continue
-
             # get most common annotation
             cons_taxon, cons_count = Counter(gene_taxa).most_common()[0]
-
             # determine if enough genes have consensus annotation
             cons_fract = cons_count / float(len(self.genes))
             if cons_fract >= min_fraction:
@@ -281,7 +273,6 @@ class Contig:
 
 
 def flag_contigs(db_dir, tmp_dir, args):
-
     # step 0. read in reference data files
     # cutoffs
     cutoffs = {}
@@ -312,7 +303,6 @@ def flag_contigs(db_dir, tmp_dir, args):
                             clusters[type][seq_id] = [seq_id]
                         elif v[0] == "H":
                             clusters[type][rep_id].append(seq_id)
-
     # step 1. determine if bin is archaea or bacteria; initialize domain-level markers
     # to do: normalize counts by site of marker gene sets
     marker_ids = set([])
@@ -336,7 +326,6 @@ def flag_contigs(db_dir, tmp_dir, args):
             markers[marker_id] = Marker()
             markers[marker_id].id = marker_id
             markers[marker_id].genes = []
-
     # step 2. initialize marker genes found in bin
     bin = Bin()
     bin.genes = {}
@@ -350,7 +339,6 @@ def flag_contigs(db_dir, tmp_dir, args):
         gene.marker = aln["qacc"]
         bin.genes[gene_id] = gene
         markers[aln["qacc"]].genes.append(gene)
-
     # annotate genes
     #    fetch all non-redundant taxonomic annotations for each gene
     seq_types = None
@@ -360,12 +348,10 @@ def flag_contigs(db_dir, tmp_dir, args):
         seq_types = ["faa"]
     else:
         seq_types = ["ffn"]
-
     for seq_type in seq_types:
         for marker_id in markers:
             aln_path = tmp_dir + "/alns/" + marker_id + "." + seq_type + ".m8"
             for aln in utilities.parse_blast(aln_path):
-
                 # fetch all unique taxonomies for target sequence
                 # a sequence can have multiple taxonomies if it was clustered with another sequence
                 genome_taxa = []
@@ -377,73 +363,58 @@ def flag_contigs(db_dir, tmp_dir, args):
                         continue
                     else:
                         genome_taxa.append(taxonomy[genome_id])
-
                 # loop over ranks; stop when gene has been annotated
                 for rank_index, rank in enumerate(["s", "g", "f", "o", "c", "p"]):
-
                     # decide to use ffn or faa at species level
                     if args["seq_type"] == "either":
                         if seq_type == "ffn" and rank != "s":
                             continue
                         elif seq_type == "faa" and rank == "s":
                             continue
-
                     # get minimum % identity cutoff for transfering taxonomy
                     #   if cutoff_type is None, indicates that no cutoff should be used
                     min_pid = cutoffs[marker_id, seq_type, "pid", rank][
                         args["cutoff_type"]
                     ]
-
                     if float(aln["pid"]) < float(min_pid):
                         continue
-
                     # add taxonomy
                     for genome_taxon in genome_taxa:
                         annotation = Annotation()
                         annotation.add_taxon(genome_taxon, rank_index)
                         annotation.score = float(aln["bitscore"])
                         bin.genes[aln["qname"]].annotations.append(annotation)
-
                     # stop when gene has been annotated at lowest rank
                     break
-
     # optionally remove annotations matching <exclude_clades>
     if args["exclude_clades"] is not None:
         bin.exclude_clades(args["exclude_clades"])
-
     # optionally take top hit only
     if args["hit_type"] == "top_hit":
         bin.only_keep_top_hits()
-
     # create None annotations for unannotated genes
     for gene in bin.genes.values():
         if len(gene.annotations) == 0:
             gene.annotations.append(Annotation())
-
     # classify bin
     bin.classify_taxonomy(args["allow_noclass"], args["bin_fract"])
-
     # flag contigs with discrepant taxonomy
     bin.contigs = {}
     for id, seq in utilities.parse_fasta(args["fna"]):
         bin.contigs[id] = Contig()
         bin.contigs[id].id = id
         bin.contigs[id].length = len(seq)
-
     for gene in bin.genes.values():
         bin.contigs[gene.contig].genes.append(gene)
-
     if bin.cons_taxon is not None:
         for contig in bin.contigs.values():
             contig.compare_taxonomy(bin)
             contig.flag(args["contig_fract"])
-
     # write results
     flagged_contigs = []
     for contig in bin.contigs.values():
         if contig.flagged:
             flagged_contigs.append(contig.id)
-
     return flagged_contigs
 
 
@@ -452,21 +423,17 @@ def main(args):
     utilities.check_input(args)
     utilities.check_dependencies(["prodigal", "hmmsearch", "blastp", "blastn"])
     utilities.check_database(args)
-
     print("\u001b[1m" + "• Calling genes with Prodigal" + "\u001b[0m")
     utilities.run_prodigal(args["fna"], args["tmp_dir"])
     print(f"  all genes: {args['tmp_dir']}/genes.[ffn|faa]")
-
     print("\u001b[1m" + "\n• Identifying PhyEco phylogenetic marker genes with HMMER" + "\u001b[0m")
     utilities.run_hmmsearch(args["db"], args["tmp_dir"], args["tmp_dir"], args["threads"])
     extract_homologs(args["tmp_dir"])
     print(f"  hmm results: {args['tmp_dir']}/phyeco.hmmsearch")
     print(f"  marker genes: {args['tmp_dir']}/markers")
-
     print("\u001b[1m" + "\n• Performing pairwise BLAST alignment of marker genes against database" + "\u001b[0m")
     align_homologs(args["db"], args["tmp_dir"], args["seq_type"], args["threads"])
     print(f"  blast results: {args['tmp_dir']}/alns")
-
     print("\u001b[1m" + "\n• Finding taxonomic outliers" + "\u001b[0m")
     flagged = flag_contigs(args["db"], args["tmp_dir"], args)
     out = f"{args['tmp_dir']}/flagged_contigs"
