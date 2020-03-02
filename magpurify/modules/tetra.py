@@ -35,6 +35,11 @@ def fetch_args(parser):
         "out", type=str, help="Output directory to store results and intermediate files",
     )
     parser.add_argument("--cutoff", type=float, default=0.06, help="Cutoff")
+    parser.add_argument(
+        "--weighted-mean",
+        action="store_true",
+        help="Compute the mean weighted by the contig length"
+    )
 
 
 def init_kmers():
@@ -64,12 +69,14 @@ def main(args):
     print("\u001b[1m" + "• Counting tetranucleotides" + "\u001b[0m")
     # init data
     contigs = {}
+    contig_length_list = []
     for id, seq in utilities.parse_fasta(args["fna"]):
         contig = Contig()
         contig.id = id
         contig.seq = str(seq)
         contig.kmers = init_kmers()
         contigs[id] = contig
+        contig_length_list.append(len(seq))
 
     # count kmers
     for contig in contigs.values():
@@ -95,17 +102,24 @@ def main(args):
     pca = PCA(n_components=1)
     pca.fit(df)
     pc1 = pca.components_[0]
-
-    print(
-        "\u001b[1m"
-        + "\n• Computing per-contig deviation from the mean along the first principal component"
-        + "\u001b[0m"
-    )
-    mean_pc = np.mean(pc1)
+    if args["weighted_mean"]:
+        print(
+            "\u001b[1m"
+            + "\n• Computing per-contig deviation from the weighted mean along the first principal component"
+            + "\u001b[0m"
+        )
+        reference_pc = np.average(pc1, weights=contig_length_list)
+    else:
+        print(
+            "\u001b[1m"
+            + "\n• Computing per-contig deviation from the mean along the first principal component"
+            + "\u001b[0m"
+        )
+        reference_pc = np.average(pc1)
     for contig_id, contig_pc in zip(list(df.columns), pc1):
         contigs[contig_id].pc = contig_pc
         contigs[contig_id].values = {}
-        contigs[contig_id].values["delta"] = abs(contig_pc - mean_pc)
+        contigs[contig_id].values["delta"] = abs(contig_pc - reference_pc)
 
     print("\u001b[1m" + "\n• Identifying outlier contigs" + "\u001b[0m")
     flagged = []

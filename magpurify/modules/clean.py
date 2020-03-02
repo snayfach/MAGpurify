@@ -19,6 +19,7 @@
 import argparse
 import os
 import sys
+import textwrap
 from operator import itemgetter
 from magpurify import utilities
 
@@ -82,5 +83,5 @@ def main(args):
     print(f"  remains: {len(clean)} contigs, {clean_length} Kbp")
     with open(args['out_fna'], "w") as f:
         for id, seq in clean.items():
-            f.write(">" + id + "\n" + seq + "\n")
+            f.write(">" + id + "\n" + textwrap.fill(seq, 70) + "\n")
     print(f"  cleaned bin: {args['out_fna']}")

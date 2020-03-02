@@ -40,6 +40,11 @@ def fetch_args(parser):
     parser.add_argument(
         "--cutoff", type=float, default=15.75, help="Cutoff"
     )
+    parser.add_argument(
+        "--weighted-mean",
+        action="store_true",
+        help="Compute the mean weighted by the contig length"
+    )
 
 
 class Contig:
@@ -50,19 +55,28 @@ class Contig:
 def main(args):
     utilities.add_tmp_dir(args)
     utilities.check_input(args)
-    print("\u001b[1m" + "• Computing mean contig GC content" + "\u001b[0m")
+    if args["weighted_mean"]:
+        print("\u001b[1m" + "• Computing weighted mean contig GC content" + "\u001b[0m")
+    else:
+        print("\u001b[1m" + "• Computing mean contig GC content" + "\u001b[0m")
     contigs = {}
+    contig_length_list = []
     for id, seq in utilities.parse_fasta(args["fna"]):
         contig = Contig()
         contig.id = id
         contig.seq = str(seq)
         contig.gc = round(SeqUtils.GC(seq), 2)
         contigs[id] = contig
-    mean = np.mean([c.gc for c in contigs.values()])
-    print("\u001b[1m" + "\n• Computing per-contig deviation from mean" + "\u001b[0m")
+        contig_length_list.append(len(seq))
+    if args["weighted_mean"]:
+        print("\u001b[1m" + "\n• Computing per-contig deviation from weighted mean" + "\u001b[0m")
+        reference = np.average([c.gc for c in contigs.values()], weights=contig_length_list)
+    else:
+        print("\u001b[1m" + "\n• Computing per-contig deviation from mean" + "\u001b[0m")
+        reference = np.average([c.gc for c in contigs.values()])
     for contig in contigs.values():
         contig.values = {}
-        contig.values["delta"] = abs(contig.gc - mean)
+        contig.values["delta"] = abs(contig.gc - reference)
     print("\u001b[1m" + "\n• Identifying outlier contigs" + "\u001b[0m")
     flagged = []
     for contig in contigs.values():
