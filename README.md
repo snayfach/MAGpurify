@@ -10,7 +10,7 @@ There is two ways of installing MAGpurify:
 
 - Using conda:
 ```
-conda install -c bioconda magpurify
+conda install -c conda-forge -c bioconda magpurify
 ```
 
 - Using pip:
