@@ -21,7 +21,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="magpurify",
-    version="2.1.0",
+    version="2.1.1",
     packages=find_packages(),
     license="GNU General Public License v3.0",
     description="Identify and remove incorrectly binned contigs from metagenome-assembled genomes.",
@@ -31,7 +31,7 @@ setup(
         "biopython",
         "numpy",
         "pandas",
-        "sklearn",
+        "scikit-learn",
     ],
     python_requires=">=3.6",
     entry_points={"console_scripts": ["magpurify=magpurify.cli:cli"]},
