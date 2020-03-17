@@ -144,11 +144,11 @@ def parse_blast(input, type="file"):
 
 
 def parse_mash(fpath):
-    fields = ["query", "target", "dist", "pvalue", "fraction"]
-    formats = [str, str, float, float, str]
     out = open(fpath).read()
     if len(out) > 0:
         lines = out.rstrip("\n").split("\n")
+        fields = ["query", "target", "dist", "pvalue", "fraction"]
+        formats = [str, str, float, float, str]
         for line in lines:
             values = line.split()
             rec = dict([(f, m(v)) for f, m, v in zip(fields, formats, values)])

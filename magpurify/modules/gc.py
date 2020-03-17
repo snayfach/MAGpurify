@@ -78,10 +78,12 @@ def main(args):
         contig.values = {}
         contig.values["delta"] = abs(contig.gc - reference)
     print("\u001b[1m" + "\n• Identifying outlier contigs" + "\u001b[0m")
-    flagged = []
-    for contig in contigs.values():
-        if contig.values["delta"] > args["cutoff"]:
-            flagged.append(contig.id)
+    flagged = [
+        contig.id
+        for contig in contigs.values()
+        if contig.values["delta"] > args["cutoff"]
+    ]
+
     out = f"{args['tmp_dir']}/flagged_contigs"
     print(f"  {len(flagged)} flagged contigs: {out}")
     with open(out, "w") as f:

@@ -113,7 +113,7 @@ def extract_homologs(tmp_dir):
     gene_to_aln = utilities.fetch_hmm_best_hits(f"{tmp_dir}/phyeco.hmmsearch")
     # open output files
     outfiles = {}
-    marker_ids = set([aln["qacc"] for aln in list(gene_to_aln.values())])
+    marker_ids = set(aln["qacc"] for aln in list(gene_to_aln.values()))
     for marker_id in marker_ids:
         outfiles[marker_id] = {}
         outfiles[marker_id]["ffn"] = open(f"{seqs_dir}/{marker_id}.ffn", "w")
@@ -143,18 +143,11 @@ def align_homologs(db_dir, tmp_dir, seq_type, threads):
             continue
         elif ext == "faa" and seq_type == "dna":
             continue
-        if ext == "faa":
-            program = "blastp" if ext == "faa" else "blastn"
-            db_path = f"{db_dir}/phylo-markers/{program}/{marker_id}"
-            query_path = f"{tmp_dir}/markers/{marker_id}.{ext}"
-            out_path = f"{tmp_dir}/alns/{marker_id}.{ext}.m8"
-            utilities.run_blastp(db_path, query_path, out_path, threads)
-        else:
-            program = "blastn"
-            db_path = f"{db_dir}/phylo-markers/{program}/{marker_id}"
-            query_path = f"{tmp_dir}/markers/{marker_id}.{ext}"
-            out_path = f"{tmp_dir}/alns/{marker_id}.{ext}.m8"
-            utilities.run_blastp(db_path, query_path, out_path, threads)
+        program = 'blastp' if ext == 'faa' else 'blastn'
+        db_path = f"{db_dir}/phylo-markers/{program}/{marker_id}"
+        query_path = f"{tmp_dir}/markers/{marker_id}.{ext}"
+        out_path = f"{tmp_dir}/alns/{marker_id}.{ext}.m8"
+        utilities.run_blastp(db_path, query_path, out_path, threads)
 
 
 class Bin:
@@ -171,7 +164,7 @@ class Bin:
             exclude_indexes = []
             # loop over annotations for each gene
             for index, annotation in enumerate(gene.annotations):
-                is_match = any([c in annotation.taxon for c in clades])
+                is_match = any(c in annotation.taxon for c in clades)
                 if is_match:
                     exclude_indexes.append(index)
             # delete annotations
@@ -181,7 +174,7 @@ class Bin:
     def only_keep_top_hits(self):
         for gene in list(self.genes.values()):
             if len(gene.annotations) > 1:
-                max_score = max([a.score for a in gene.annotations])
+                max_score = max(a.score for a in gene.annotations)
                 gene.annotations = [a for a in gene.annotations if a.score == max_score]
 
     def classify_taxonomy(self, allow_noclass=False, min_fraction=0.5):
@@ -193,21 +186,13 @@ class Bin:
             for gene in list(self.genes.values()):
                 # do not count unclassified
                 if not allow_noclass:
-                    taxa = list(
-                        set(
-                            [
-                                a.taxon[rank_index]
-                                for a in gene.annotations
-                                if a.taxon[rank_index]
-                            ]
-                        )
-                    )
-                # count unclassified
+                    taxa = list(set(a.taxon[rank_index] for a in gene.annotations
+                                                    if a.taxon[rank_index]))
                 else:
-                    taxa = list(set([a.taxon[rank_index] for a in gene.annotations]))
+                    taxa = list(set(a.taxon[rank_index] for a in gene.annotations))
                 gene_taxa += taxa
             # skip rank where there are no annotations
-            if len(gene_taxa) == 0:
+            if not gene_taxa:
                 continue
             # get most common annotation
             cons_taxon, cons_count = Counter(gene_taxa).most_common()[0]
@@ -255,9 +240,11 @@ class Contig:
 
     def compare_taxonomy(self, bin):
         for gene in self.genes:
-            agrees = []
-            for annotation in gene.annotations:
-                agrees.append(bin.cons_taxon == annotation.taxon[bin.rank_index])
+            agrees = [
+                bin.cons_taxon == annotation.taxon[bin.rank_index]
+                for annotation in gene.annotations
+            ]
+
             if any(agrees):
                 self.genes_agree += 1
             else:
@@ -282,12 +269,10 @@ def flag_contigs(db_dir, tmp_dir, args):
         key = (r["marker_id"], r["seq_type"], r["score_type"], r["taxlevel"])
         value = {"sensitive": r["cutoff_lower"], "strict": r["cutoff_upper"], "none": 0.0}
         cutoffs[key] = value
-    # taxonomy
-    taxonomy = {}
     taxonomy_path = f"{db_dir}/phylo-markers/genome_taxonomy.tsv"
     reader = csv.DictReader(open(taxonomy_path), delimiter="\t")
-    for r in reader:
-        taxonomy[r["genome_id"]] = r["taxonomy"]
+    # taxonomy
+    taxonomy = {r["genome_id"]: r["taxonomy"] for r in reader}
     # clustered seqs
     clusters = {}
     for type in ["ffn", "faa"]:
@@ -357,19 +342,20 @@ def flag_contigs(db_dir, tmp_dir, args):
                 genome_taxa = []
                 for target_id in clusters[seq_type][aln["tname"]]:
                     genome_id = target_id.split("_")[0]
-                    if genome_id not in taxonomy:
-                        continue
-                    elif taxonomy[genome_id] in genome_taxa:
+                    if (
+                        genome_id not in taxonomy
+                        or taxonomy[genome_id] in genome_taxa
+                    ):
                         continue
                     else:
                         genome_taxa.append(taxonomy[genome_id])
                 # loop over ranks; stop when gene has been annotated
                 for rank_index, rank in enumerate(["s", "g", "f", "o", "c", "p"]):
-                    # decide to use ffn or faa at species level
-                    if args["seq_type"] == "either":
-                        if seq_type == "ffn" and rank != "s":
+                    if seq_type == "ffn" and rank != "s":
+                        if args["seq_type"] == "either":
                             continue
-                        elif seq_type == "faa" and rank == "s":
+                    elif seq_type == "faa" and rank == "s":
+                        if args["seq_type"] == "either":
                             continue
                     # get minimum % identity cutoff for transfering taxonomy
                     #   if cutoff_type is None, indicates that no cutoff should be used
@@ -410,12 +396,7 @@ def flag_contigs(db_dir, tmp_dir, args):
         for contig in bin.contigs.values():
             contig.compare_taxonomy(bin)
             contig.flag(args["contig_fract"])
-    # write results
-    flagged_contigs = []
-    for contig in bin.contigs.values():
-        if contig.flagged:
-            flagged_contigs.append(contig.id)
-    return flagged_contigs
+    return [contig.id for contig in bin.contigs.values() if contig.flagged]
 
 
 def main(args):

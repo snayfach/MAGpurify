@@ -47,9 +47,7 @@ def init_kmers():
     for i in itertools.product("ACGT", repeat=4):
         kmer_fwd = "".join(i)
         kmer_rev = utilities.reverse_complement(kmer_fwd)
-        if kmer_fwd in tetra:
-            continue
-        elif kmer_rev in tetra:
+        if kmer_fwd in tetra or kmer_rev in tetra:
             continue
         else:
             tetra[kmer_fwd] = 0
@@ -92,11 +90,7 @@ def main(args):
     for contig in contigs.values():
         total = float(sum(contig.kmers.values()))
         for kmer, count in contig.kmers.items():
-            if total > 0:
-                contig.kmers[kmer] = 100 * count / total
-            else:
-                contig.kmers[kmer] = 0.00
-
+            contig.kmers[kmer] = 100 * count / total if total > 0 else 0.0
     print("\u001b[1m" + "\n• Performing PCA" + "\u001b[0m")
     df = pd.DataFrame(dict([(c.id, c.kmers) for c in contigs.values()]))
     pca = PCA(n_components=1)
@@ -122,10 +116,12 @@ def main(args):
         contigs[contig_id].values["delta"] = abs(contig_pc - reference_pc)
 
     print("\u001b[1m" + "\n• Identifying outlier contigs" + "\u001b[0m")
-    flagged = []
-    for contig in contigs.values():
-        if contig.values["delta"] > args["cutoff"]:
-            flagged.append(contig.id)
+    flagged = [
+        contig.id
+        for contig in contigs.values()
+        if contig.values["delta"] > args["cutoff"]
+    ]
+
     out = f"{args['tmp_dir']}/flagged_contigs"
     print(f"  {len(flagged)} flagged contigs: {out}")
     with open(out, "w") as f:

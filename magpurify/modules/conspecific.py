@@ -111,9 +111,7 @@ def blastn(query, target, outdir, id):
 def id_blast_hits(blast_out, min_aln, min_pid):
     blast_hits = set([])
     for rec in utilities.parse_blast(blast_out, type="string"):
-        if rec["qcov"] < min_aln:
-            continue
-        elif rec["pid"] < min_pid:
+        if rec["qcov"] < min_aln or rec["pid"] < min_pid:
             continue
         else:
             blast_hits.add(rec["qname"])
