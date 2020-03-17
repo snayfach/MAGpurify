@@ -36,12 +36,6 @@ def fetch_args(parser):
         help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "--threads",
-        type=int,
-        default=1,
-        help="Number of CPUs to use",
-    )
-    parser.add_argument(
         "--db",
         type=str,
         help="Path to reference database. By default, the IMAGEN_DB environmental variable is used",
@@ -53,13 +47,22 @@ def fetch_args(parser):
         help="Minimum %% identity to reference",
     )
     parser.add_argument(
-        "--evalue", type=float, default=1e-5, help="Maximum evalue"
+        "--evalue",
+        type=float,
+        default=1e-5,
+        help="Maximum evalue"
     )
     parser.add_argument(
         "--qcov",
         type=float,
         default=25,
         help="Minimum percent query coverage",
+    )
+    parser.add_argument(
+        "--threads",
+        type=int,
+        default=1,
+        help="Number of CPUs to use",
     )
 
 

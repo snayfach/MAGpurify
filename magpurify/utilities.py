@@ -232,8 +232,9 @@ def fetch_hmm_best_hits(fpath):
     return gene_to_aln
 
 
-def run_coverm(bam_list, out_dir):
+def run_coverm(bam_list, out_dir, threads):
     cmd = "coverm contig "
+    cmd += f"--threads {threads} "
     cmd += "--contig-end-exclusion 75 "
     cmd += "--min-read-percent-identity 0.97 "
     cmd += f"--bam-files {' '.join(bam_list)} "

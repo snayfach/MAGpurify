@@ -44,9 +44,6 @@ def fetch_args(parser):
         "out", type=str, help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "--threads", type=int, default=1, help="Number of CPUs to use",
-    )
-    parser.add_argument(
         "--db",
         type=str,
         help="Path to reference database. By default, the MAGPURIFY environmental variable is used",
@@ -85,6 +82,12 @@ def fetch_args(parser):
         "--lowest_rank",
         choices=["s", "g", "f", "o", "c", "p", "k"],
         help="Lowest rank for bin classification",
+    )
+    parser.add_argument(
+        "--threads",
+        type=int,
+        default=1,
+        help="Number of CPUs to use",
     )
 
 
@@ -250,7 +253,7 @@ def main(args):
         # clade exclusion
         ref_taxa = ref_taxonomy[aln["tid"]].split("|")
         if args["exclude_clades"] and any(
-            [taxon in ref_taxa for taxon in args["exclude_clades"]]
+            taxon in ref_taxa for taxon in args["exclude_clades"]
         ):
             continue
         # initialize gene
@@ -329,10 +332,7 @@ def main(args):
             0 : bin.rank_index + 1
         ]
         flag_contigs(contigs, bin)
-    flagged = []
-    for contig in contigs.values():
-        if contig.flagged:
-            flagged.append(contig.id)
+    flagged = [contig.id for contig in contigs.values() if contig.flagged]
     out = f"{args['tmp_dir']}/flagged_contigs"
     print(f"  {len(flagged)} flagged contigs: {out}")
     with open(out, "w") as f:

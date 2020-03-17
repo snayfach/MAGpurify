@@ -47,9 +47,7 @@ def fetch_args(parser):
 def main(args):
     utilities.check_input(args)
     print("\u001b[1m" + "• Reading genome bin" + "\u001b[0m")
-    bin = {}
-    for id, seq in utilities.parse_fasta(args["fna"]):
-        bin[id] = seq
+    bin = {id: seq for id, seq in utilities.parse_fasta(args["fna"])}
     bin_length = round(sum(len(_) for _ in bin.values()) / 1000, 2)
     print(f"  genome length: {len(bin)} contigs, {bin_length} Kbp")
     print("\u001b[1m" + "\n• Reading flagged contigs" + "\u001b[0m")

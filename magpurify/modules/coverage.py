@@ -26,12 +26,20 @@ from magpurify import utilities
 def fetch_args(parser):
     parser.set_defaults(func=main)
     parser.set_defaults(program="coverage")
-    parser.add_argument("fna", type=str, help="Path to input genome in FASTA format")
     parser.add_argument(
-        "out", type=str, help="Output directory to store results and intermediate files",
+        "fna",
+        type=str,
+        help="Path to input genome in FASTA format")
+    parser.add_argument(
+        "out",
+        type=str,
+        help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "bams", nargs="+", type=str, help="Path to input sorted BAM file(s)",
+        "bams",
+        nargs="+",
+        type=str,
+        help="Path to input sorted BAM file(s)",
     )
     parser.add_argument(
         "--max-deviation",
@@ -44,6 +52,12 @@ def fetch_args(parser):
         action="store_true",
         help="Compute the mean weighted by the contig length"
     )
+    parser.add_argument(
+        "--threads",
+        type=int,
+        default=1,
+        help="Number of CPUs to use",
+    )
 
 
 def main(args):
@@ -51,7 +65,7 @@ def main(args):
     utilities.check_input(args)
     utilities.check_dependencies(["coverm"])
     print("\u001b[1m" + "• Computing contig coverage" + "\u001b[0m")
-    utilities.run_coverm(args["bams"], args["tmp_dir"])
+    utilities.run_coverm(args["bams"], args["tmp_dir"], args["threads"])
     coverage_df = pd.read_csv(f"{args['tmp_dir']}/coverage.tsv", sep="\t", index_col=0)
     contig_id_list = []
     contig_length_list = []

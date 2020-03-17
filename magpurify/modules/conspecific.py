@@ -34,19 +34,22 @@ def fetch_args(parser):
         "mash_sketch", type=str, help="Path to Mash sketch of reference genomes",
     )
     parser.add_argument(
-        "--threads", type=int, default=1, help="Number of CPUs to use",
-    )
-    parser.add_argument(
         "--mash-dist",
         type=float,
         default=0.05,
         help="Mash distance to reference genomes",
     )
     parser.add_argument(
-        "--max-genomes", type=int, default=25, help="Max number of genomes to use",
+        "--max-genomes",
+        type=int,
+        default=25,
+        help="Max number of genomes to use",
     )
     parser.add_argument(
-        "--min-genomes", type=int, default=1, help="Min number of genomes to use",
+        "--min-genomes",
+        type=int,
+        default=1,
+        help="Min number of genomes to use",
     )
     parser.add_argument(
         "--contig-aln",
@@ -61,10 +64,22 @@ def fetch_args(parser):
         help="Minimum percent identity of contig aligned to reference",
     )
     parser.add_argument(
-        "--hit-rate", type=float, default=0.00, help="Hit rate for flagging contigs",
+        "--hit-rate",
+        type=float,
+        default=0.00,
+        help="Hit rate for flagging contigs",
     )
     parser.add_argument(
-        "--exclude", nargs="+", default="", help="List of references to exclude",
+        "--exclude",
+        nargs="+",
+        default="",
+        help="List of references to exclude",
+    )
+    parser.add_argument(
+        "--threads",
+        type=int,
+        default=1,
+        help="Number of CPUs to use",
     )
 
 

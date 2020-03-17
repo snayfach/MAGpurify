@@ -38,12 +38,6 @@ def fetch_args(parser):
         help="Output directory to store results and intermediate files",
     )
     parser.add_argument(
-        "--threads",
-        type=int,
-        default=1,
-        help="Number of CPUs to use",
-    )
-    parser.add_argument(
         "--db",
         type=str,
         help="Path to reference database. By default, the MAGPURIFYDB environmental variable is used",
@@ -101,6 +95,12 @@ def fetch_args(parser):
         action="store_true",
         default=False,
         help="Allow a bin to be unclassfied and flag any classified contigs",
+    )
+    parser.add_argument(
+        "--threads",
+        type=int,
+        default=1,
+        help="Number of CPUs to use",
     )
 
 
